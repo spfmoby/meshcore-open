@@ -18,25 +18,28 @@ class SettingsScreen extends StatelessWidget {
         title: const Text('Settings'),
         centerTitle: true,
       ),
-      body: Consumer<MeshCoreConnector>(
-        builder: (context, connector, child) {
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              _buildDeviceInfoCard(connector),
-              const SizedBox(height: 16),
-              _buildAppSettingsCard(context),
-              const SizedBox(height: 16),
-              _buildNodeSettingsCard(context, connector),
-              const SizedBox(height: 16),
-              _buildActionsCard(context, connector),
-              const SizedBox(height: 16),
-              _buildDebugCard(context),
-              const SizedBox(height: 16),
-              _buildAboutCard(context),
-            ],
-          );
-        },
+      body: SafeArea(
+        top: false,
+        child: Consumer<MeshCoreConnector>(
+          builder: (context, connector, child) {
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildDeviceInfoCard(connector),
+                const SizedBox(height: 16),
+                _buildAppSettingsCard(context),
+                const SizedBox(height: 16),
+                _buildNodeSettingsCard(context, connector),
+                const SizedBox(height: 16),
+                _buildActionsCard(context, connector),
+                const SizedBox(height: 16),
+                _buildDebugCard(context),
+                const SizedBox(height: 16),
+                _buildAboutCard(context),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -244,7 +247,7 @@ class SettingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await connector.sendCliCommand('set name ${controller.text}');
+              await connector.setNodeName(controller.text);
               await connector.refreshDeviceInfo();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
@@ -302,18 +305,33 @@ class SettingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              var updated = false;
-              if (latController.text.isNotEmpty) {
-                await connector.sendCliCommand('set lat ${latController.text}');
-                updated = true;
+              final latText = latController.text.trim();
+              final lonText = lonController.text.trim();
+              if (latText.isEmpty && lonText.isEmpty) {
+                return;
               }
-              if (lonController.text.isNotEmpty) {
-                await connector.sendCliCommand('set lon ${lonController.text}');
-                updated = true;
+
+              final currentLat = connector.selfLatitude;
+              final currentLon = connector.selfLongitude;
+              final lat = latText.isNotEmpty ? double.tryParse(latText) : currentLat;
+              final lon = lonText.isNotEmpty ? double.tryParse(lonText) : currentLon;
+              if (lat == null || lon == null) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter both latitude and longitude.')),
+                );
+                return;
               }
-              if (updated) {
-                await connector.refreshDeviceInfo();
+              if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Invalid latitude or longitude.')),
+                );
+                return;
               }
+
+              await connector.setNodeLocation(lat: lat, lon: lon);
+              await connector.refreshDeviceInfo();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Location updated')),
@@ -340,7 +358,7 @@ class SettingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await connector.sendCliCommand('set privacy on');
+              await connector.setPrivacyMode(true);
               await connector.refreshDeviceInfo();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
@@ -352,7 +370,7 @@ class SettingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await connector.sendCliCommand('set privacy off');
+              await connector.setPrivacyMode(false);
               await connector.refreshDeviceInfo();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
@@ -367,7 +385,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _sendAdvert(BuildContext context, MeshCoreConnector connector) {
-    connector.sendCliCommand('advert');
+    connector.sendSelfAdvert(flood: true);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Advertisement sent')),
     );
@@ -394,7 +412,7 @@ class SettingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              connector.sendCliCommand('reboot');
+              connector.rebootDevice();
             },
             child: const Text('Reboot', style: TextStyle(color: Colors.orange)),
           ),

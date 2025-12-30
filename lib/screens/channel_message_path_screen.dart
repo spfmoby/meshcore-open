@@ -48,33 +48,36 @@ class ChannelMessagePathScreen extends StatelessWidget {
               ),
             ],
           ),
-          body: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              _buildSummaryCard(context, observedLabel: observedLabel),
-              const SizedBox(height: 16),
-              if (extraPaths.isNotEmpty) ...[
+          body: SafeArea(
+            top: false,
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildSummaryCard(context, observedLabel: observedLabel),
+                const SizedBox(height: 16),
+                if (extraPaths.isNotEmpty) ...[
+                  Text(
+                    'Other Observed Paths',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildPathVariants(context, extraPaths),
+                  const SizedBox(height: 16),
+                ],
                 Text(
-                  'Other Observed Paths',
+                  'Repeater Hops',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 8),
-                _buildPathVariants(context, extraPaths),
-                const SizedBox(height: 16),
+                if (!hasHopDetails)
+                  const Text(
+                    'Hop details are not provided for this packet.',
+                    style: TextStyle(color: Colors.grey),
+                  )
+                else
+                  ..._buildHopTiles(hops),
               ],
-              Text(
-                'Repeater Hops',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: 8),
-              if (!hasHopDetails)
-                const Text(
-                  'Hop details are not provided for this packet.',
-                  style: TextStyle(color: Colors.grey),
-                )
-              else
-                ..._buildHopTiles(hops),
-            ],
+            ),
           ),
         );
       },
@@ -296,60 +299,63 @@ class _ChannelMessagePathMapScreenState extends State<ChannelMessagePathMapScree
           appBar: AppBar(
             title: const Text('Path Map'),
           ),
-          body: Stack(
-            children: [
-              FlutterMap(
-                key: mapKey,
-                options: MapOptions(
-                  initialCenter: initialCenter,
-                  initialZoom: initialZoom,
-                  initialCameraFit: bounds == null
-                      ? null
-                      : CameraFit.bounds(
-                          bounds: bounds,
-                          padding: const EdgeInsets.all(64),
-                          maxZoom: 16,
-                        ),
-                  minZoom: 2.0,
-                  maxZoom: 18.0,
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: kMapTileUrlTemplate,
-                    tileProvider: tileCache.tileProvider,
-                    userAgentPackageName:
-                        MapTileCacheService.userAgentPackageName,
-                    maxZoom: 19,
+          body: SafeArea(
+            top: false,
+            child: Stack(
+              children: [
+                FlutterMap(
+                  key: mapKey,
+                  options: MapOptions(
+                    initialCenter: initialCenter,
+                    initialZoom: initialZoom,
+                    initialCameraFit: bounds == null
+                        ? null
+                        : CameraFit.bounds(
+                            bounds: bounds,
+                            padding: const EdgeInsets.all(64),
+                            maxZoom: 16,
+                          ),
+                    minZoom: 2.0,
+                    maxZoom: 18.0,
                   ),
-                  if (polylines.isNotEmpty) PolylineLayer(polylines: polylines),
-                  MarkerLayer(
-                    markers: _buildHopMarkers(hops),
-                  ),
-                ],
-              ),
-              if (observedPaths.length > 1)
-                _buildPathSelector(
-                  context,
-                  observedPaths,
-                  selectedIndex,
-                  (index) {
-                    setState(() {
-                      _selectedPath = observedPaths[index].pathBytes;
-                    });
-                  },
+                  children: [
+                    TileLayer(
+                      urlTemplate: kMapTileUrlTemplate,
+                      tileProvider: tileCache.tileProvider,
+                      userAgentPackageName:
+                          MapTileCacheService.userAgentPackageName,
+                      maxZoom: 19,
+                    ),
+                    if (polylines.isNotEmpty) PolylineLayer(polylines: polylines),
+                    MarkerLayer(
+                      markers: _buildHopMarkers(hops),
+                    ),
+                  ],
                 ),
-              if (points.isEmpty)
-                Center(
-                  child: Card(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    child: const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: Text('No repeater locations available for this path.'),
+                if (observedPaths.length > 1)
+                  _buildPathSelector(
+                    context,
+                    observedPaths,
+                    selectedIndex,
+                    (index) {
+                      setState(() {
+                        _selectedPath = observedPaths[index].pathBytes;
+                      });
+                    },
+                  ),
+                if (points.isEmpty)
+                  Center(
+                    child: Card(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      child: const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Text('No repeater locations available for this path.'),
+                      ),
                     ),
                   ),
-                ),
-              _buildLegendCard(context, hops),
-            ],
+                _buildLegendCard(context, hops),
+              ],
+            ),
           ),
         );
       },

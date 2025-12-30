@@ -296,17 +296,20 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadStatus,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _buildSystemInfoCard(),
-            const SizedBox(height: 16),
-            _buildRadioStatsCard(),
-            const SizedBox(height: 16),
-            _buildPacketStatsCard(),
-          ],
+      body: SafeArea(
+        top: false,
+        child: RefreshIndicator(
+          onRefresh: _loadStatus,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildSystemInfoCard(),
+              const SizedBox(height: 16),
+              _buildRadioStatsCard(),
+              const SizedBox(height: 16),
+              _buildPacketStatsCard(),
+            ],
+          ),
         ),
       ),
     );

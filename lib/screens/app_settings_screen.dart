@@ -16,23 +16,26 @@ class AppSettingsScreen extends StatelessWidget {
         title: const Text('App Settings'),
         centerTitle: true,
       ),
-      body: Consumer2<AppSettingsService, MeshCoreConnector>(
-        builder: (context, settingsService, connector, child) {
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              _buildAppearanceCard(context, settingsService),
-              const SizedBox(height: 16),
-              _buildNotificationsCard(context, settingsService),
-              const SizedBox(height: 16),
-              _buildMessagingCard(context, settingsService),
-              const SizedBox(height: 16),
-              _buildBatteryCard(context, settingsService, connector),
-              const SizedBox(height: 16),
-              _buildMapSettingsCard(context, settingsService),
-            ],
-          );
-        },
+      body: SafeArea(
+        top: false,
+        child: Consumer2<AppSettingsService, MeshCoreConnector>(
+          builder: (context, settingsService, connector, child) {
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildAppearanceCard(context, settingsService),
+                const SizedBox(height: 16),
+                _buildNotificationsCard(context, settingsService),
+                const SizedBox(height: 16),
+                _buildMessagingCard(context, settingsService),
+                const SizedBox(height: 16),
+                _buildBatteryCard(context, settingsService, connector),
+                const SizedBox(height: 16),
+                _buildMapSettingsCard(context, settingsService),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

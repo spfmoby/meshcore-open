@@ -38,92 +38,98 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Channels'),
-        centerTitle: true,
-        automaticallyImplyLeading: !widget.hideBackButton,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.tune),
-            tooltip: 'Settings',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.bluetooth_disabled),
-            tooltip: 'Disconnect',
-            onPressed: () => _disconnect(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<MeshCoreConnector>().getChannels(),
-          ),
-        ],
-      ),
-      body: Consumer<MeshCoreConnector>(
-        builder: (context, connector, child) {
-          if (connector.isLoadingChannels) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    final connector = context.watch<MeshCoreConnector>();
+    final allowBack = !connector.isConnected;
 
-          final channels = connector.channels;
-
-          if (channels.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.tag, size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No channels configured',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: () => _addPublicChannel(context, connector),
-                    icon: const Icon(Icons.public),
-                    label: const Text('Add Public Channel'),
-                  ),
-                ],
+    return PopScope(
+      canPop: allowBack,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Channels'),
+          centerTitle: true,
+          automaticallyImplyLeading: !widget.hideBackButton && allowBack,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.tune),
+              tooltip: 'Settings',
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
               ),
-            );
-          }
+            ),
+            IconButton(
+              icon: const Icon(Icons.bluetooth_disabled),
+              tooltip: 'Disconnect',
+              onPressed: () => _disconnect(context),
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () => context.read<MeshCoreConnector>().getChannels(),
+            ),
+          ],
+        ),
+        body: Consumer<MeshCoreConnector>(
+          builder: (context, connector, child) {
+            if (connector.isLoadingChannels) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          return ReorderableListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
-            buildDefaultDragHandles: false,
-            itemCount: channels.length,
-            onReorder: (oldIndex, newIndex) {
-              if (newIndex > oldIndex) newIndex -= 1;
-              final reordered = List<Channel>.from(channels);
-              final item = reordered.removeAt(oldIndex);
-              reordered.insert(newIndex, item);
-              unawaited(
-                connector.setChannelOrder(
-                  reordered.map((c) => c.index).toList(),
+            final channels = connector.channels;
+
+            if (channels.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.tag, size: 64, color: Colors.grey[400]),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No channels configured',
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      onPressed: () => _addPublicChannel(context, connector),
+                      icon: const Icon(Icons.public),
+                      label: const Text('Add Public Channel'),
+                    ),
+                  ],
                 ),
               );
-            },
-            itemBuilder: (context, index) {
-              final channel = channels[index];
-              return _buildChannelTile(context, connector, channel, index);
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddChannelDialog(context),
-        child: const Icon(Icons.add),
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: QuickSwitchBar(
-          selectedIndex: 1,
-          onDestinationSelected: (index) => _handleQuickSwitch(index, context),
+            }
+
+            return ReorderableListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+              buildDefaultDragHandles: false,
+              itemCount: channels.length,
+              onReorder: (oldIndex, newIndex) {
+                if (newIndex > oldIndex) newIndex -= 1;
+                final reordered = List<Channel>.from(channels);
+                final item = reordered.removeAt(oldIndex);
+                reordered.insert(newIndex, item);
+                unawaited(
+                  connector.setChannelOrder(
+                    reordered.map((c) => c.index).toList(),
+                  ),
+                );
+              },
+              itemBuilder: (context, index) {
+                final channel = channels[index];
+                return _buildChannelTile(context, connector, channel, index);
+              },
+            );
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _showAddChannelDialog(context),
+          child: const Icon(Icons.add),
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: QuickSwitchBar(
+            selectedIndex: 1,
+            onDestinationSelected: (index) => _handleQuickSwitch(index, context),
+          ),
         ),
       ),
     );

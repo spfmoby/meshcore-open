@@ -130,113 +130,118 @@ class _MapScreenState extends State<MapScreen> {
           center = highlightPosition;
         }
 
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Node Map'),
-            centerTitle: true,
-            automaticallyImplyLeading: !widget.hideBackButton,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.tune),
-                tooltip: 'Settings',
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
+        final allowBack = !connector.isConnected;
+
+        return PopScope(
+          canPop: allowBack,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Node Map'),
+              centerTitle: true,
+              automaticallyImplyLeading: !widget.hideBackButton && allowBack,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.tune),
+                  tooltip: 'Settings',
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                  ),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.bluetooth_disabled),
-                tooltip: 'Disconnect',
-                onPressed: () => _disconnect(context, connector),
-              ),
-            ],
-          ),
-          body: !hasMapContent
-              ? _buildEmptyState()
-              : Stack(
-                  children: [
-                    FlutterMap(
-                      mapController: _mapController,
-                      options: MapOptions(
-                        initialCenter: center,
-                        initialZoom: 13.0,
-                        minZoom: 2.0,
-                        maxZoom: 18.0,
-                        onTap: (_, latLng) {
-                          if (_isSelectingPoi) {
-                            setState(() {
-                              _isSelectingPoi = false;
-                            });
-                            _shareMarker(
-                              context: context,
-                              connector: connector,
-                              position: latLng,
-                              defaultLabel: 'Point of interest',
-                              flags: 'poi',
-                            );
-                          }
-                        },
-                        onLongPress: (_, latLng) {
-                          if (_isSelectingPoi) {
-                            setState(() {
-                              _isSelectingPoi = false;
-                            });
-                            _shareMarker(
-                              context: context,
-                              connector: connector,
-                              position: latLng,
-                              defaultLabel: 'Point of interest',
-                              flags: 'poi',
-                            );
-                            return;
-                          }
-                          _showShareMarkerAtPositionSheet(
-                            context: context,
-                            connector: connector,
-                            position: latLng,
-                          );
-                        },
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate: kMapTileUrlTemplate,
-                          tileProvider: tileCache.tileProvider,
-                          userAgentPackageName:
-                              MapTileCacheService.userAgentPackageName,
-                          maxZoom: 19,
-                        ),
-                        MarkerLayer(
-                          markers: [
-                            if (highlightPosition != null)
-                              Marker(
-                                point: highlightPosition,
-                                width: 40,
-                                height: 40,
-                                child: Icon(
-                                  Icons.location_on_outlined,
-                                  color: Colors.red[600],
-                                  size: 34,
-                                ),
-                              ),
-                            ..._buildMarkers(contactsWithLocation, settings),
-                            ...sharedMarkers.map(_buildSharedMarker),
-                          ],
-                        ),
-                      ],
-                    ),
-                    _buildLegend(contactsWithLocation.length, sharedMarkers.length),
-                  ],
+                IconButton(
+                  icon: const Icon(Icons.bluetooth_disabled),
+                  tooltip: 'Disconnect',
+                  onPressed: () => _disconnect(context, connector),
                 ),
-          bottomNavigationBar: SafeArea(
-            top: false,
-            child: QuickSwitchBar(
-              selectedIndex: 2,
-              onDestinationSelected: (index) => _handleQuickSwitch(index, context),
+              ],
             ),
-          ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _showFilterDialog(context, settingsService),
-            child: const Icon(Icons.filter_list),
+            body: !hasMapContent
+                ? _buildEmptyState()
+                : Stack(
+                    children: [
+                      FlutterMap(
+                        mapController: _mapController,
+                        options: MapOptions(
+                          initialCenter: center,
+                          initialZoom: 13.0,
+                          minZoom: 2.0,
+                          maxZoom: 18.0,
+                          onTap: (_, latLng) {
+                            if (_isSelectingPoi) {
+                              setState(() {
+                                _isSelectingPoi = false;
+                              });
+                              _shareMarker(
+                                context: context,
+                                connector: connector,
+                                position: latLng,
+                                defaultLabel: 'Point of interest',
+                                flags: 'poi',
+                              );
+                            }
+                          },
+                          onLongPress: (_, latLng) {
+                            if (_isSelectingPoi) {
+                              setState(() {
+                                _isSelectingPoi = false;
+                              });
+                              _shareMarker(
+                                context: context,
+                                connector: connector,
+                                position: latLng,
+                                defaultLabel: 'Point of interest',
+                                flags: 'poi',
+                              );
+                              return;
+                            }
+                            _showShareMarkerAtPositionSheet(
+                              context: context,
+                              connector: connector,
+                              position: latLng,
+                            );
+                          },
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate: kMapTileUrlTemplate,
+                            tileProvider: tileCache.tileProvider,
+                            userAgentPackageName:
+                                MapTileCacheService.userAgentPackageName,
+                            maxZoom: 19,
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              if (highlightPosition != null)
+                                Marker(
+                                  point: highlightPosition,
+                                  width: 40,
+                                  height: 40,
+                                  child: Icon(
+                                    Icons.location_on_outlined,
+                                    color: Colors.red[600],
+                                    size: 34,
+                                  ),
+                                ),
+                              ..._buildMarkers(contactsWithLocation, settings),
+                              ...sharedMarkers.map(_buildSharedMarker),
+                            ],
+                          ),
+                        ],
+                      ),
+                      _buildLegend(contactsWithLocation.length, sharedMarkers.length),
+                    ],
+                  ),
+            bottomNavigationBar: SafeArea(
+              top: false,
+              child: QuickSwitchBar(
+                selectedIndex: 2,
+                onDestinationSelected: (index) => _handleQuickSwitch(index, context),
+              ),
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => _showFilterDialog(context, settingsService),
+              child: const Icon(Icons.filter_list),
+            ),
           ),
         );
       },

@@ -550,24 +550,27 @@ class _RepeaterSettingsScreenState extends State<RepeaterSettingsScreen> {
             ),
         ],
       ),
-      body: _isLoading && _nameController.text.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildBasicSettingsCard(),
-                const SizedBox(height: 16),
-                _buildRadioSettingsCard(),
-                const SizedBox(height: 16),
-                _buildLocationSettingsCard(),
-                const SizedBox(height: 16),
-                _buildFeatureTogglesCard(),
-                const SizedBox(height: 16),
-                _buildAdvertisementSettingsCard(),
-                const SizedBox(height: 32),
-                _buildDangerZoneCard(),
-              ],
-            ),
+      body: SafeArea(
+        top: false,
+        child: _isLoading && _nameController.text.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _buildBasicSettingsCard(),
+                  const SizedBox(height: 16),
+                  _buildRadioSettingsCard(),
+                  const SizedBox(height: 16),
+                  _buildLocationSettingsCard(),
+                  const SizedBox(height: 16),
+                  _buildFeatureTogglesCard(),
+                  const SizedBox(height: 16),
+                  _buildAdvertisementSettingsCard(),
+                  const SizedBox(height: 32),
+                  _buildDangerZoneCard(),
+                ],
+              ),
+      ),
     );
   }
 

@@ -31,116 +31,119 @@ class RepeaterHubScreen extends StatelessWidget {
         ),
         centerTitle: false,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Repeater info card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.orange,
-                      child: const Icon(Icons.cell_tower, size: 40, color: Colors.white),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      repeater.name,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      repeater.pathLabel,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                    if (repeater.hasLocation) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${repeater.latitude?.toStringAsFixed(4)}, ${repeater.longitude?.toStringAsFixed(4)}',
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                          ),
-                        ],
+      body: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Repeater info card
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundColor: Colors.orange,
+                        child: const Icon(Icons.cell_tower, size: 40, color: Colors.white),
                       ),
+                      const SizedBox(height: 16),
+                      Text(
+                        repeater.name,
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        repeater.pathLabel,
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      ),
+                      if (repeater.hasLocation) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${repeater.latitude?.toStringAsFixed(4)}, ${repeater.longitude?.toStringAsFixed(4)}',
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Management Tools',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            // Status button
-            _buildManagementCard(
-              context,
-              icon: Icons.analytics,
-              title: 'Status',
-              subtitle: 'View repeater status, stats, and neighbors',
-              color: Colors.blue,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RepeaterStatusScreen(
-                      repeater: repeater,
-                      password: password,
+              const SizedBox(height: 24),
+              const Text(
+                'Management Tools',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              // Status button
+              _buildManagementCard(
+                context,
+                icon: Icons.analytics,
+                title: 'Status',
+                subtitle: 'View repeater status, stats, and neighbors',
+                color: Colors.blue,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RepeaterStatusScreen(
+                        repeater: repeater,
+                        password: password,
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            // CLI button
-            _buildManagementCard(
-              context,
-              icon: Icons.terminal,
-              title: 'CLI',
-              subtitle: 'Send commands to the repeater',
-              color: Colors.green,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RepeaterCliScreen(
-                      repeater: repeater,
-                      password: password,
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              // CLI button
+              _buildManagementCard(
+                context,
+                icon: Icons.terminal,
+                title: 'CLI',
+                subtitle: 'Send commands to the repeater',
+                color: Colors.green,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RepeaterCliScreen(
+                        repeater: repeater,
+                        password: password,
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            // Settings button
-            _buildManagementCard(
-              context,
-              icon: Icons.settings,
-              title: 'Settings',
-              subtitle: 'Configure repeater parameters',
-              color: Colors.orange,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RepeaterSettingsScreen(
-                      repeater: repeater,
-                      password: password,
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              // Settings button
+              _buildManagementCard(
+                context,
+                icon: Icons.settings,
+                title: 'Settings',
+                subtitle: 'Configure repeater parameters',
+                color: Colors.orange,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RepeaterSettingsScreen(
+                        repeater: repeater,
+                        password: password,
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-          ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

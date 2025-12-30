@@ -210,6 +210,11 @@ void writeUint32LE(Uint8List data, int offset, int value) {
   data[offset + 3] = (value >> 24) & 0xFF;
 }
 
+// Helper to write int32 little-endian
+void writeInt32LE(Uint8List data, int offset, int value) {
+  writeUint32LE(data, offset, value & 0xFFFFFFFF);
+}
+
 // Helper to read null-terminated UTF-8 string
 String readCString(Uint8List data, int offset, int maxLen) {
   int end = offset;
@@ -360,6 +365,39 @@ Uint8List buildSetDeviceTimeFrame(int timestamp) {
   frame[0] = cmdSetDeviceTime;
   writeUint32LE(frame, 1, timestamp);
   return frame;
+}
+
+// Build CMD_SEND_SELF_ADVERT frame
+// Format: [cmd][flood_flag]
+Uint8List buildSendSelfAdvertFrame({bool flood = false}) {
+  return Uint8List.fromList([cmdSendSelfAdvert, flood ? 1 : 0]);
+}
+
+// Build CMD_SET_ADVERT_NAME frame
+// Format: [cmd][name...]
+Uint8List buildSetAdvertNameFrame(String name) {
+  final nameBytes = utf8.encode(name);
+  final nameLen = nameBytes.length < maxNameSize ? nameBytes.length : maxNameSize - 1;
+  final frame = Uint8List(1 + nameLen);
+  frame[0] = cmdSetAdvertName;
+  frame.setRange(1, 1 + nameLen, nameBytes.sublist(0, nameLen));
+  return frame;
+}
+
+// Build CMD_SET_ADVERT_LATLON frame
+// Format: [cmd][lat x4][lon x4]
+Uint8List buildSetAdvertLatLonFrame(double lat, double lon) {
+  final frame = Uint8List(9);
+  frame[0] = cmdSetAdvertLatLon;
+  writeInt32LE(frame, 1, (lat * 1000000).round());
+  writeInt32LE(frame, 5, (lon * 1000000).round());
+  return frame;
+}
+
+// Build CMD_REBOOT frame
+// Format: [cmd]["reboot"]
+Uint8List buildRebootFrame() {
+  return Uint8List.fromList([cmdReboot, ...utf8.encode('reboot')]);
 }
 
 // Build CMD_SYNC_NEXT_MESSAGE frame

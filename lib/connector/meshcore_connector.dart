@@ -613,10 +613,20 @@ class MeshCoreConnector extends ChangeNotifier {
         throw Exception("MeshCore characteristics not found");
       }
 
-      // Give the device a moment to be ready for descriptor writes
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      await _txCharacteristic!.setNotifyValue(true);
+      // Retry setNotifyValue with increasing delays
+      bool notifySet = false;
+      for (int attempt = 0; attempt < 3 && !notifySet; attempt++) {
+        try {
+          if (attempt > 0) {
+            await Future.delayed(Duration(milliseconds: 500 * attempt));
+          }
+          await _txCharacteristic!.setNotifyValue(true);
+          notifySet = true;
+        } catch (e) {
+          debugPrint('setNotifyValue attempt ${attempt + 1}/3 failed: $e');
+          if (attempt == 2) rethrow;
+        }
+      }
       _notifySubscription = _txCharacteristic!.onValueReceived.listen(_handleFrame);
 
       _setState(MeshCoreConnectionState.connected);
@@ -1183,6 +1193,30 @@ class MeshCoreConnector extends ChangeNotifier {
     final commandBytes = utf8.encode(command);
     final bytes = Uint8List.fromList([0x01, ...commandBytes, 0x00]);
     await sendFrame(bytes);
+  }
+
+  Future<void> setNodeName(String name) async {
+    if (!isConnected) return;
+    await sendFrame(buildSetAdvertNameFrame(name));
+  }
+
+  Future<void> setNodeLocation({required double lat, required double lon}) async {
+    if (!isConnected) return;
+    await sendFrame(buildSetAdvertLatLonFrame(lat, lon));
+  }
+
+  Future<void> sendSelfAdvert({bool flood = true}) async {
+    if (!isConnected) return;
+    await sendFrame(buildSendSelfAdvertFrame(flood: flood));
+  }
+
+  Future<void> rebootDevice() async {
+    if (!isConnected) return;
+    await sendFrame(buildRebootFrame());
+  }
+
+  Future<void> setPrivacyMode(bool enabled) async {
+    await sendCliCommand('set privacy ${enabled ? 'on' : 'off'}');
   }
 
   Future<void> getChannels({int? maxChannels}) async {

@@ -59,63 +59,66 @@ class _BleDebugLogScreenState extends State<BleDebugLogScreen> {
               ),
             ],
           ),
-          body: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: SegmentedButton<_BleLogView>(
-                  segments: const [
-                    ButtonSegment(value: _BleLogView.frames, label: Text('Frames')),
-                    ButtonSegment(value: _BleLogView.rawLogRx, label: Text('Raw Log-RX')),
-                  ],
-                  selected: {_view},
-                  onSelectionChanged: (selection) {
-                    setState(() => _view = selection.first);
-                  },
+          body: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: SegmentedButton<_BleLogView>(
+                    segments: const [
+                      ButtonSegment(value: _BleLogView.frames, label: Text('Frames')),
+                      ButtonSegment(value: _BleLogView.rawLogRx, label: Text('Raw Log-RX')),
+                    ],
+                    selected: {_view},
+                    onSelectionChanged: (selection) {
+                      setState(() => _view = selection.first);
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: hasEntries
-                    ? ListView.separated(
-                        itemCount: showingFrames ? entries.length : rawEntries.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          if (showingFrames) {
-                            final entry = entries[index];
+                const SizedBox(height: 8),
+                Expanded(
+                  child: hasEntries
+                      ? ListView.separated(
+                          itemCount: showingFrames ? entries.length : rawEntries.length,
+                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            if (showingFrames) {
+                              final entry = entries[index];
+                              final time =
+                                  '${entry.timestamp.hour.toString().padLeft(2, '0')}:${entry.timestamp.minute.toString().padLeft(2, '0')}:${entry.timestamp.second.toString().padLeft(2, '0')}';
+                              return ListTile(
+                                dense: true,
+                                title: Text(entry.description),
+                                subtitle: Text('${entry.hexPreview}\n$time'),
+                                isThreeLine: true,
+                                leading: Icon(
+                                  entry.outgoing ? Icons.upload : Icons.download,
+                                  size: 18,
+                                ),
+                              );
+                            }
+
+                            final entry = rawEntries[index];
+                            final info = _decodeRawPacket(entry.payload);
                             final time =
                                 '${entry.timestamp.hour.toString().padLeft(2, '0')}:${entry.timestamp.minute.toString().padLeft(2, '0')}:${entry.timestamp.second.toString().padLeft(2, '0')}';
                             return ListTile(
                               dense: true,
-                              title: Text(entry.description),
-                              subtitle: Text('${entry.hexPreview}\n$time'),
+                              title: Text(info.title),
+                              subtitle: Text('${info.summary}\n$time'),
                               isThreeLine: true,
-                              leading: Icon(
-                                entry.outgoing ? Icons.upload : Icons.download,
-                                size: 18,
-                              ),
+                              leading: const Icon(Icons.download, size: 18),
+                              onTap: () => _showRawDialog(context, info),
                             );
-                          }
-
-                          final entry = rawEntries[index];
-                          final info = _decodeRawPacket(entry.payload);
-                          final time =
-                              '${entry.timestamp.hour.toString().padLeft(2, '0')}:${entry.timestamp.minute.toString().padLeft(2, '0')}:${entry.timestamp.second.toString().padLeft(2, '0')}';
-                          return ListTile(
-                            dense: true,
-                            title: Text(info.title),
-                            subtitle: Text('${info.summary}\n$time'),
-                            isThreeLine: true,
-                            leading: const Icon(Icons.download, size: 18),
-                            onTap: () => _showRawDialog(context, info),
-                          );
-                        },
-                      )
-                    : const Center(
-                        child: Text('No BLE activity yet'),
-                      ),
-              ),
-            ],
+                          },
+                        )
+                      : const Center(
+                          child: Text('No BLE activity yet'),
+                        ),
+                ),
+              ],
+            ),
           ),
         );
       },

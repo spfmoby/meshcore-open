@@ -18,20 +18,23 @@ class ScannerScreen extends StatelessWidget {
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      body: Consumer<MeshCoreConnector>(
-        builder: (context, connector, child) {
-          return Column(
-            children: [
-              // Status bar
-              _buildStatusBar(context, connector),
-              
-              // Device list
-              Expanded(
-                child: _buildDeviceList(context, connector),
-              ),
-            ],
-          );
-        },
+      body: SafeArea(
+        top: false,
+        child: Consumer<MeshCoreConnector>(
+          builder: (context, connector, child) {
+            return Column(
+              children: [
+                // Status bar
+                _buildStatusBar(context, connector),
+
+                // Device list
+                Expanded(
+                  child: _buildDeviceList(context, connector),
+                ),
+              ],
+            );
+          },
+        ),
       ),
       floatingActionButton: Consumer<MeshCoreConnector>(
         builder: (context, connector, child) {
