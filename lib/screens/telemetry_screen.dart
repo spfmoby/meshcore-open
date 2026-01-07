@@ -72,14 +72,8 @@ class _TelemetryScreenState extends State<TelemetryScreen> {
 
   void _handleStatusResponse(BuildContext context, Uint8List frame) {
     setState(() {
-      _isLoading = false;
-      _isLoaded = true; 
       _parsedTelemetry = CayenneLpp.parseByChannel(frame);
     });
-
-    for (final entry in _parsedTelemetry![1]!.values) {
-      print('Telemetry - Channel: ${entry['channel']}, Type: ${entry['type']}, Value: ${entry['value']}');
-    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -268,8 +262,16 @@ class _TelemetryScreenState extends State<TelemetryScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              for (final entry in _parsedTelemetry ?? [])
-                _buildChannelInfoCard(entry['values'], 'Channel ${entry['channel']}', entry['channel']),
+              if (_isLoaded && !(_parsedTelemetry == null || _parsedTelemetry!.isEmpty))
+                for (final entry in _parsedTelemetry ?? [])
+                  _buildChannelInfoCard(entry['values'], 'Channel ${entry['channel']}', entry['channel']),
+              if (!_isLoaded && (_parsedTelemetry == null || _parsedTelemetry!.isEmpty))
+                const Center(
+                  child: Text(
+                    'No telemetry data available.',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ),
             ],
           ),
         ),
@@ -286,7 +288,7 @@ class _TelemetryScreenState extends State<TelemetryScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.info_outline, color: Theme.of(context).primaryColor),
+                Icon(Icons.info_outline, color: Theme.of(context).textTheme.headlineSmall?.color),
                 const SizedBox(width: 8),
                 Text(
                   title,
