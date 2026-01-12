@@ -1622,20 +1622,10 @@ class AppLocalizationsPl extends AppLocalizations {
   String get map_showSharedMarkers => 'Pokaż współdzielone znaki.';
 
   @override
-  String get map_showGuessedLocations =>
-      'Wyświetl lokalizacje zgadanych węzłów';
+  String get map_lastSeenTime => 'Ostatni raz widziany';
 
   @override
-  String get map_showDiscoveryContacts => 'Pokaż kontakty odkrywania';
-
-  @override
-  String get map_guessedLocation => 'Wydana lokalizacja';
-
-  @override
-  String get map_lastSeenTime => 'Ostatni raz widiany';
-
-  @override
-  String get map_sharedPin => 'Podzielony PIN';
+  String get map_sharedPin => 'Współdzielony PIN';
 
   @override
   String get map_joinRoom => 'Dołącz do pokoju';
@@ -1722,7 +1712,7 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
-  String get mapCache_downloadTilesButton => 'Pobierz Paski';
+  String get mapCache_downloadTilesButton => 'Pobierz kafelki';
 
   @override
   String get mapCache_clearCacheButton => 'Wyczyść pamięć podręczną';
@@ -2177,7 +2167,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get repeater_encryptedAdvertInterval =>
-      'Zaszyfrowany Interwał Reklamowy';
+      'Interwał Zaszyfrowanego Rozgłoszenia';
 
   @override
   String get repeater_dangerZone => 'Strefa Zagrożeń';
@@ -2191,7 +2181,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get repeater_rebootRepeaterConfirm =>
-      'Czy na pewno chcesz zrestartować ten repeater?';
+      'Czy na pewno chcesz zrestartować ten powtarzacz?';
 
   @override
   String get repeater_regenerateIdentityKey => 'Wygeneruj klucz tożsamości';
@@ -2202,7 +2192,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get repeater_regenerateIdentityKeyConfirm =>
-      'To zostanie wygenerowane nowe tożsamość dla powtarzacza. Kontynuować?';
+      'Zostanie wygenerowana nowa tożsamość dla powtarzacza. Kontynuować?';
 
   @override
   String get repeater_eraseFileSystem => 'Wyczyść System Plików';
@@ -2337,7 +2327,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get repeater_cliQuickClock => 'Godzina';
 
   @override
-  String get repeater_cliHelpAdvert => 'Wysyła pakiet reklamowy';
+  String get repeater_cliHelpAdvert => 'Wysyła pakiet rozgłoszeniowy';
 
   @override
   String get repeater_cliHelpReboot =>
@@ -2392,11 +2382,11 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get repeater_cliHelpSetAdvertInterval =>
-      'Ustawia interwał timera w minutach do wysyłania pakietu reklamy lokalnej (bezpośredniej). Ustaw na 0, aby wyłączyć.';
+      'Ustawia interwał timera w minutach do wysyłania pakietu rozgłoszenia lokalnego (bezpośredniego). Ustaw na 0, aby wyłączyć.';
 
   @override
   String get repeater_cliHelpSetFloodAdvertInterval =>
-      'Ustawia interwał timera w godzinach do wysłania pakietu reklamowego typu \"powiew\". Ustaw na 0, aby wyłączyć.';
+      'Ustawia interwał timera w godzinach do wysłania pakietu rozgłoszeniowego typu \"flood\". Ustaw na 0, aby wyłączyć.';
 
   @override
   String get repeater_cliHelpSetGuestPassword =>
@@ -2478,7 +2468,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get repeater_cliHelpNeighbors =>
-      'Wyświetla listę innych węzłów powtarzających się, które usłyszano dzięki reklamom zero-hop. Każda linia to: id-prefix-hex:timestamp:snr-times-4';
+      'Wyświetla listę innych węzłów powtarzających się, które usłyszano dzięki rozgłszeniom zero-hop. Każda linia to: id-prefix-hex:timestamp:snr-times-4';
 
   @override
   String get repeater_cliHelpNeighborRemove =>
