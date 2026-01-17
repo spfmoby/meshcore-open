@@ -273,6 +273,9 @@ class _MapScreenState extends State<MapScreen> {
                           initialZoom: initialZoom,
                           minZoom: 2.0,
                           maxZoom: 18.0,
+                          interactionOptions: InteractionOptions(
+                            flags: ~InteractiveFlag.rotate
+                          ),
                           onTap: (_, latLng) {
                             if (_isSelectingPoi) {
                               setState(() {
