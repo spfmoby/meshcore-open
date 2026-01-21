@@ -206,7 +206,7 @@ class NotificationService {
     final preview = _truncateMessage(message, 30);
     final body = preview.isEmpty
         ? 'Received new message'
-        : 'Received new message: $preview';
+        : preview;
 
     await _notifications.show(
       channelIndex?.hashCode ?? DateTime.now().millisecondsSinceEpoch,
