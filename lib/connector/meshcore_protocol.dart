@@ -195,8 +195,8 @@ const int maxFrameSize = 172;
 const int appProtocolVersion = 3;
 // Matches firmware MAX_TEXT_LEN (10 * CIPHER_BLOCK_SIZE).
 const int maxTextPayloadBytes = 160;
-const int _sendTextMsgOverheadBytes = 1 + 1 + 1 + 4 + 6 + 1;
-const int _sendChannelTextMsgOverheadBytes = 1 + 1 + 1 + 4 + 1;
+const int _sendTextMsgOverheadBytes = 1 + 1 + 1 + 4 + 6 + 1 + 2; // +2 safety margin
+const int _sendChannelTextMsgOverheadBytes = 1 + 1 + 1 + 4 + 1 + 2; // +2 safety margin
 
 int maxContactMessageBytes() {
   final byFrame = maxFrameSize - _sendTextMsgOverheadBytes;
