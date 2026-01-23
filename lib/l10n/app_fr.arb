@@ -1346,7 +1346,7 @@
   "listFilter_all": "Tout",
   "listFilter_users": "Utilisateurs",
   "listFilter_repeaters": "Répéteurs",
-  "listFilter_roomServers": "Rooms servers",
+  "listFilter_roomServers": "Room servers",
   "listFilter_unreadOnly": "Messages non lus seulement",
   "listFilter_newGroup": "Nouveau groupe",
   "@neighbors_errorLoading": {
