@@ -273,7 +273,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Recharger la liste des contacts depuis l\'appareil';
 
   @override
-  String get settings_rebootDevice => 'Réinitialiser l\'appareil';
+  String get settings_rebootDevice => 'Redémarrer l\'appareil';
 
   @override
   String get settings_rebootDeviceSubtitle => 'Redémarrer l\'appareil MeshCore';
@@ -1892,7 +1892,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Intervalle d\'annonces cryptées';
 
   @override
-  String get repeater_dangerZone => 'Zone d\'alerte';
+  String get repeater_dangerZone => 'Zone dangereuse';
 
   @override
   String get repeater_rebootRepeater => 'Redémarrer Répéteur';
@@ -2685,7 +2685,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get listFilter_repeaters => 'Répéteurs';
 
   @override
-  String get listFilter_roomServers => 'Rooms servers';
+  String get listFilter_roomServers => 'Room servers';
 
   @override
   String get listFilter_unreadOnly => 'Messages non lus seulement';
