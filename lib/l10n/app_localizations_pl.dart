@@ -2468,7 +2468,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get repeater_cliHelpNeighbors =>
-      'Wyświetla listę innych węzłów powtarzających się, które usłyszano dzięki rozgłszeniom zero-hop. Każda linia to: id-prefix-hex:timestamp:snr-times-4';
+      'Wyświetla listę innych węzłów powtarzających się, które usłyszano dzięki rozgłoszeniom zero-hop. Każda linia to: id-prefix-hex:timestamp:snr-times-4';
 
   @override
   String get repeater_cliHelpNeighborRemove =>
