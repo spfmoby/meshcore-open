@@ -738,7 +738,7 @@ class MeshCoreConnector extends ChangeNotifier {
     });
 
     await FlutterBluePlus.startScan(
-      withKeywords: ["MeshCore-", "Whisper-"],
+      withKeywords: ["MeshCore-", "Whisper-", "Wismesh-", "WisCore-"],
       webOptionalServices: [Guid(MeshCoreUuids.service)],
       timeout: timeout,
       androidScanMode: AndroidScanMode.lowLatency,
@@ -836,18 +836,30 @@ class MeshCoreConnector extends ChangeNotifier {
         throw Exception("MeshCore characteristics not found");
       }
 
-      // Retry setNotifyValue with increasing delays
-      bool notifySet = false;
-      for (int attempt = 0; attempt < 3 && !notifySet; attempt++) {
-        try {
-          if (attempt > 0) {
-            await Future.delayed(Duration(milliseconds: 500 * attempt));
+      if (PlatformInfo.isWeb) {
+        debugPrint('Starting setNotifyValue(true)');
+        debugPrint('Web: Calling setNotifyValue(true) without awaiting');
+        unawaited(() async {
+          try {
+            await _txCharacteristic!.setNotifyValue(true);
+          } catch (error) {
+            debugPrint('Web setNotifyValue error (ignoring): $error');
           }
-          await _txCharacteristic!.setNotifyValue(true);
-          notifySet = true;
-        } catch (e) {
-          debugPrint('setNotifyValue attempt ${attempt + 1}/3 failed: $e');
-          if (attempt == 2) rethrow;
+        }());
+        debugPrint('setNotifyValue(true) configuration completed');
+      } else {
+        bool notifySet = false;
+        for (int attempt = 0; attempt < 3 && !notifySet; attempt++) {
+          try {
+            if (attempt > 0) {
+              await Future.delayed(Duration(milliseconds: 500 * attempt));
+            }
+            await _txCharacteristic!.setNotifyValue(true);
+            notifySet = true;
+          } catch (e) {
+            debugPrint('setNotifyValue attempt ${attempt + 1}/3 failed: $e');
+            if (attempt == 2) rethrow;
+          }
         }
       }
       _notifySubscription = _txCharacteristic!.onValueReceived.listen(
