@@ -295,7 +295,7 @@ abstract class AppLocalizations {
   /// No description provided for @common_notAvailable.
   ///
   /// In en, this message translates to:
-  /// **'â€”'**
+  /// **'—'**
   String get common_notAvailable;
 
   /// No description provided for @common_voltageValue.
@@ -4409,7 +4409,7 @@ abstract class AppLocalizations {
   /// No description provided for @telemetry_temperatureValue.
   ///
   /// In en, this message translates to:
-  /// **'{celsius}Â°C / {fahrenheit}Â°F'**
+  /// **'{celsius}Ãƒâ€šÃ‚Â°C / {fahrenheit}Ãƒâ€šÃ‚Â°F'**
   String telemetry_temperatureValue(String celsius, String fahrenheit);
 
   /// No description provided for @neighbors_receivedData.
@@ -4523,7 +4523,7 @@ abstract class AppLocalizations {
   /// No description provided for @channelPath_observedPathTitle.
   ///
   /// In en, this message translates to:
-  /// **'Observed path {index} â€¢ {hops}'**
+  /// **'Observed path {index} ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {hops}'**
   String channelPath_observedPathTitle(int index, String hops);
 
   /// No description provided for @channelPath_noLocationData.
@@ -4607,7 +4607,7 @@ abstract class AppLocalizations {
   /// No description provided for @channelPath_selectedPathLabel.
   ///
   /// In en, this message translates to:
-  /// **'{label} â€¢ {prefixes}'**
+  /// **'{label} ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {prefixes}'**
   String channelPath_selectedPathLabel(String label, String prefixes);
 
   /// No description provided for @channelPath_noHopDetailsAvailable.

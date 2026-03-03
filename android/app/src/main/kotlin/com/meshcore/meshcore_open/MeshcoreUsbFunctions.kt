@@ -235,7 +235,14 @@ class MeshcoreUsbFunctions(
     }
 
     private fun findUsbDevice(portName: String): UsbDevice? {
-        return usbManager.deviceList.values.firstOrNull { it.deviceName == portName }
+        val devices = usbManager.deviceList.values
+        val exactMatch = devices.firstOrNull { it.deviceName == portName }
+        if (exactMatch != null) {
+            return exactMatch
+        }
+
+        val normalizedName = portName.substringBefore(" - ").trim()
+        return devices.firstOrNull { it.deviceName == normalizedName }
     }
 
     private fun openUsbDevice(

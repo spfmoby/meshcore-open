@@ -28,7 +28,7 @@
   "common_disable": "Disable",
   "common_reboot": "Reboot",
   "common_loading": "Loading...",
-  "common_notAvailable": "â€”",
+  "common_notAvailable": "—",
   "common_voltageValue": "{volts} V",
   "@common_voltageValue": {
     "placeholders": {
@@ -1351,7 +1351,7 @@
       }
     }
   },
-  "telemetry_temperatureValue": "{celsius}Â°C / {fahrenheit}Â°F",
+  "telemetry_temperatureValue": "{celsius}Ãƒâ€šÃ‚Â°C / {fahrenheit}Ãƒâ€šÃ‚Â°F",
   "@telemetry_temperatureValue": {
     "placeholders": {
       "celsius": {
@@ -1401,7 +1401,7 @@
   "channelPath_repeatsLabel": "Repeats",
   "channelPath_pathLabel": "Path {index}",
   "channelPath_observedLabel": "Observed",
-  "channelPath_observedPathTitle": "Observed path {index} â€¢ {hops}",
+  "channelPath_observedPathTitle": "Observed path {index} ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {hops}",
   "@channelPath_observedPathTitle": {
     "placeholders": {
       "index": {
@@ -1476,7 +1476,7 @@
   },
   "channelPath_pathLabelTitle": "Path",
   "channelPath_observedPathHeader": "Observed Path",
-  "channelPath_selectedPathLabel": "{label} â€¢ {prefixes}",
+  "channelPath_selectedPathLabel": "{label} ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {prefixes}",
   "@channelPath_selectedPathLabel": {
     "placeholders": {
       "label": {

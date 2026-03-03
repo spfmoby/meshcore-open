@@ -93,7 +93,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_loading => 'Loading...';
 
   @override
-  String get common_notAvailable => 'â€”';
+  String get common_notAvailable => '—';
 
   @override
   String common_voltageValue(String volts) {
@@ -2465,7 +2465,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String telemetry_temperatureValue(String celsius, String fahrenheit) {
-    return '$celsiusÂ°C / $fahrenheitÂ°F';
+    return '$celsiusÃƒâ€šÃ‚Â°C / $fahrenheitÃƒâ€šÃ‚Â°F';
   }
 
   @override
@@ -2533,7 +2533,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String channelPath_observedPathTitle(int index, String hops) {
-    return 'Observed path $index â€¢ $hops';
+    return 'Observed path $index ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ $hops';
   }
 
   @override
@@ -2588,7 +2588,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String channelPath_selectedPathLabel(String label, String prefixes) {
-    return '$label â€¢ $prefixes';
+    return '$label ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ $prefixes';
   }
 
   @override
