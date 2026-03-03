@@ -133,7 +133,7 @@ flutter_launcher_icons:
 
 dependency_overrides:
   flserial:
-    path: packages/flserial
+    path: vendor/flserial
 
 build_pipe:
   workflows:
