@@ -4051,7 +4051,7 @@ class MeshCoreConnector extends ChangeNotifier {
     Uint8List rawPacket, {
     bool noNotify = false,
   }) {
-    debugPrint('Discovered new contact: ${contact.name}');
+    appLogger.info('Discovered new contact: ${contact.name}', tag: 'Connector');
 
     final existingIndex = _discoveredContacts.indexWhere(
       (c) => c.publicKeyHex == contact.publicKeyHex,
@@ -4071,6 +4071,7 @@ class MeshCoreConnector extends ChangeNotifier {
             lastSeen: contact.lastSeen,
           );
       notifyListeners();
+      unawaited(_persistDiscoveredContacts());
       return;
     }
 
