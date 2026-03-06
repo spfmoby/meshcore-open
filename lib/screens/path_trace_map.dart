@@ -289,7 +289,11 @@ class _PathTraceMapScreenState extends State<PathTraceMapScreen> {
             targetPos = LatLng(target.latitude!, target.longitude!);
           } else if (pathData.isNotEmpty) {
             // Infer from the last hop: average GPS contacts sharing that hop.
-            final lastHop = pathData.last;
+            // For a round-trip path (flipPathRound), the target-side hop sits
+            // in the middle of the symmetric sequence; .last is the local side.
+            final lastHop = (widget.flipPathRound && pathData.length > 1)
+                ? pathData[(pathData.length - 1) ~/ 2]
+                : pathData.last;
             final peers = connector.contacts
                 .where(
                   (c) =>

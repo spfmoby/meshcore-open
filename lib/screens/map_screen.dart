@@ -172,10 +172,13 @@ class _MapScreenState extends State<MapScreen> {
         // Compute guessed locations with caching
         final maxRangeKm = _estimateLoRaRangeKm(connector);
         final filteredKeys = filteredByKeyPrefix
-            .map((c) => c.publicKeyHex)
+            .map((c) => '${c.publicKeyHex}:${c.path.join("-")}')
             .join(',');
         final anchorKeys = allContactsWithLocation
-            .map((c) => c.publicKeyHex)
+            .map(
+              (c) =>
+                  '${c.publicKeyHex}:${c.latitude}:${c.longitude}:${c.path.isNotEmpty ? c.path.last : ""}',
+            )
             .join(',');
         final cacheKey =
             '$filteredKeys|$anchorKeys|${pathHistory.version}:${connector.currentSf}:${connector.currentBwHz}:${connector.currentTxPower}:${settings.mapShowGuessedLocations}';
