@@ -1432,6 +1432,12 @@ class AppLocalizationsSl extends AppLocalizations {
   String get map_showSharedMarkers => 'Pokaži skupno označenja';
 
   @override
+  String get map_showGuessedLocations => 'Pokaži lokacije domnevnih not.';
+
+  @override
+  String get map_guessedLocation => 'Predpostavljena lokacija';
+
+  @override
   String get map_lastSeenTime => 'Datum zadnjega vpogleda';
 
   @override

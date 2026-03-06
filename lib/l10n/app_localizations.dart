@@ -2638,6 +2638,18 @@ abstract class AppLocalizations {
   /// **'Show shared markers'**
   String get map_showSharedMarkers;
 
+  /// No description provided for @map_showGuessedLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Show guessed node locations'**
+  String get map_showGuessedLocations;
+
+  /// No description provided for @map_guessedLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Guessed location'**
+  String get map_guessedLocation;
+
   /// No description provided for @map_lastSeenTime.
   ///
   /// In en, this message translates to:

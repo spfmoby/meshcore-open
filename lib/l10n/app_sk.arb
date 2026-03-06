@@ -1826,5 +1826,7 @@
   "contactsSettings_overwriteOldestSubtitle": "Keď je zoznam kontaktov plný, bude nahradený najstarší neoznačený kontakt.",
   "discoveredContacts_deleteContactAll": "Zmazať všetky objavené kontakty",
   "common_deleteAll": "Zmazať všetko",
-  "discoveredContacts_deleteContactAllContent": "Ste si istí, že chcete zmazať všetky objavené kontakty?"
+  "discoveredContacts_deleteContactAllContent": "Ste si istí, že chcete zmazať všetky objavené kontakty?",
+  "map_showGuessedLocations": "Zobraziť umiestnenia odhadnutých uzlov",
+  "map_guessedLocation": "Odhadnutá lokalita"
 }

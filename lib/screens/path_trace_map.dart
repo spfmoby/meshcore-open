@@ -54,6 +54,7 @@ class PathTraceMapScreen extends StatefulWidget {
   final int? repeaterId;
   final bool flipPathRound;
   final bool reversePathRound;
+  final Contact? targetContact;
 
   const PathTraceMapScreen({
     super.key,
@@ -62,6 +63,7 @@ class PathTraceMapScreen extends StatefulWidget {
     this.repeaterId,
     this.flipPathRound = false,
     this.reversePathRound = false,
+    this.targetContact,
   });
 
   @override
@@ -78,6 +80,11 @@ class _PathTraceMapScreenState extends State<PathTraceMapScreen> {
   bool _failed2Loaded = false;
   bool _hasData = false;
   PathTraceData? _traceData;
+  // Inferred positions for hops that have no GPS location, keyed by hop byte.
+  Map<int, LatLng> _inferredHopPositions = {};
+  // Endpoint position for the target contact (GPS or guessed).
+  LatLng? _targetContactPosition;
+  bool _targetContactIsGuessed = false;
   List<LatLng> _points = <LatLng>[];
   List<Polyline> _polylines = [];
   LatLng? _initialCenter = LatLng(0, 0);
@@ -242,25 +249,90 @@ class _PathTraceMapScreenState extends State<PathTraceMapScreen> {
         }
       });
 
+      // For hops with no GPS contact, infer position from other contacts
+      // with known GPS that share the same last-hop byte.
+      final Map<int, LatLng> inferredPositions = {};
+      for (final hop in pathData) {
+        final contact = pathContacts[hop];
+        if (contact != null && contact.hasLocation) continue;
+        final peers = connector.contacts
+            .where(
+              (c) =>
+                  c.hasLocation &&
+                  c.path.isNotEmpty &&
+                  c.path.last == hop,
+            )
+            .toList();
+        if (peers.isNotEmpty) {
+          final lat =
+              peers.map((c) => c.latitude!).reduce((a, b) => a + b) /
+              peers.length;
+          final lon =
+              peers.map((c) => c.longitude!).reduce((a, b) => a + b) /
+              peers.length;
+          inferredPositions[hop] = LatLng(lat, lon);
+        }
+      }
+
       setState(() {
         _isLoading = false;
         _hasData = true;
+        _inferredHopPositions = inferredPositions;
         _traceData = PathTraceData(
           pathData: pathData,
           snrData: snrData,
           pathContacts: pathContacts,
         );
+        // Compute endpoint position for the target contact.
+        LatLng? targetPos;
+        bool targetGuessed = false;
+        final target = widget.targetContact;
+        if (target != null) {
+          if (target.hasLocation) {
+            targetPos = LatLng(target.latitude!, target.longitude!);
+          } else if (pathData.isNotEmpty) {
+            // Infer from the last hop: average GPS contacts sharing that hop.
+            final lastHop = pathData.last;
+            final peers = connector.contacts
+                .where(
+                  (c) =>
+                      c.hasLocation &&
+                      c.path.isNotEmpty &&
+                      c.path.last == lastHop,
+                )
+                .toList();
+            if (peers.isNotEmpty) {
+              final lat =
+                  peers.map((c) => c.latitude!).reduce((a, b) => a + b) /
+                  peers.length;
+              final lon =
+                  peers.map((c) => c.longitude!).reduce((a, b) => a + b) /
+                  peers.length;
+              const offsetDeg = 0.003;
+              final angle = (target.publicKey[1] / 255.0) * 2 * pi;
+              targetPos = LatLng(
+                lat + offsetDeg * cos(angle),
+                lon + offsetDeg * sin(angle),
+              );
+              targetGuessed = true;
+            }
+          }
+        }
+        _targetContactPosition = targetPos;
+        _targetContactIsGuessed = targetGuessed;
+
         _points = <LatLng>[];
         _points.add(LatLng(connector.selfLatitude!, connector.selfLongitude!));
         for (final hop in _traceData!.pathData) {
           final contact = _traceData!.pathContacts[hop];
-          if (contact != null &&
-              contact.hasLocation &&
-              contact.latitude != null &&
-              contact.longitude != null) {
+          if (contact != null && contact.hasLocation) {
             _points.add(LatLng(contact.latitude!, contact.longitude!));
+          } else {
+            final inferred = inferredPositions[hop];
+            if (inferred != null) _points.add(inferred);
           }
         }
+        if (targetPos != null) _points.add(targetPos);
         _polylines = _points.length > 1
             ? [
                 Polyline(
@@ -382,8 +454,13 @@ class _PathTraceMapScreenState extends State<PathTraceMapScreen> {
     final markers = <Marker>[];
     for (final hop in pathData) {
       final contact = _traceData!.pathContacts[hop];
-      if (contact == null || !contact.hasLocation) continue;
-      final point = LatLng(contact.latitude!, contact.longitude!);
+      final inferred = _inferredHopPositions[hop];
+      final hasGps = contact != null && contact.hasLocation;
+      if (!hasGps && inferred == null) continue;
+      final point = hasGps
+          ? LatLng(contact.latitude!, contact.longitude!)
+          : inferred!;
+      final label = hop.toRadixString(16).padLeft(2, '0').toUpperCase();
       markers.add(
         Marker(
           point: point,
@@ -392,7 +469,9 @@ class _PathTraceMapScreenState extends State<PathTraceMapScreen> {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: Colors.green,
+              color: hasGps
+                  ? Colors.green
+                  : Colors.orange.withValues(alpha: 0.75),
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 2),
               boxShadow: [
@@ -405,10 +484,7 @@ class _PathTraceMapScreenState extends State<PathTraceMapScreen> {
             ),
             alignment: Alignment.center,
             child: Text(
-              contact.publicKey
-                  .sublist(0, 1)
-                  .map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase())
-                  .join(),
+              hasGps ? label : '~$label',
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -419,7 +495,12 @@ class _PathTraceMapScreenState extends State<PathTraceMapScreen> {
         ),
       );
       if (showLabels) {
-        markers.add(_buildNodeLabelMarker(point: point, label: contact.name));
+        markers.add(
+          _buildNodeLabelMarker(
+            point: point,
+            label: contact?.name ?? '~$label',
+          ),
+        );
       }
     }
 
@@ -463,6 +544,47 @@ class _PathTraceMapScreenState extends State<PathTraceMapScreen> {
           _buildNodeLabelMarker(
             point: selfPoint,
             label: context.l10n.pathTrace_you,
+          ),
+        );
+      }
+    }
+
+    // Add target contact endpoint marker.
+    final targetPos = _targetContactPosition;
+    if (targetPos != null) {
+      final isGuessed = _targetContactIsGuessed;
+      final targetName = widget.targetContact?.name ?? '?';
+      markers.add(
+        Marker(
+          point: targetPos,
+          width: 35,
+          height: 35,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: isGuessed
+                  ? Colors.purple.withValues(alpha: 0.55)
+                  : Colors.red,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            alignment: Alignment.center,
+            child: const Icon(Icons.person, color: Colors.white, size: 18),
+          ),
+        ),
+      );
+      if (showLabels) {
+        markers.add(
+          _buildNodeLabelMarker(
+            point: targetPos,
+            label: isGuessed ? '~$targetName' : targetName,
           ),
         );
       }

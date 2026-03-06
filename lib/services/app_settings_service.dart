@@ -80,6 +80,10 @@ class AppSettingsService extends ChangeNotifier {
     await updateSettings(_settings.copyWith(mapShowMarkers: value));
   }
 
+  Future<void> setMapShowGuessedLocations(bool value) async {
+    await updateSettings(_settings.copyWith(mapShowGuessedLocations: value));
+  }
+
   Future<void> setEnableMessageTracing(bool value) async {
     await updateSettings(_settings.copyWith(enableMessageTracing: value));
   }

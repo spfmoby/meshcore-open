@@ -1435,6 +1435,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get map_showSharedMarkers => 'Toon gedeelde markeringen';
 
   @override
+  String get map_showGuessedLocations =>
+      'Toon de voorspelde locaties van de knopen';
+
+  @override
+  String get map_guessedLocation => 'Geroerde locatie';
+
+  @override
   String get map_lastSeenTime => 'Laatste Bekeken Tijd';
 
   @override

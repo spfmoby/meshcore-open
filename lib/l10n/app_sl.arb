@@ -1826,5 +1826,7 @@
   "contactsSettings_overwriteOldestSubtitle": "Ko je seznam stikov poln, bo najstarejši nestarševski stik zamenjan.",
   "common_deleteAll": "Izbriši vse",
   "discoveredContacts_deleteContactAllContent": "Ste prepričani, da želite izbrisati vse odkrite kontakte?",
-  "discoveredContacts_deleteContactAll": "Izbriši vse odkrite kontakte"
+  "discoveredContacts_deleteContactAll": "Izbriši vse odkrite kontakte",
+  "map_guessedLocation": "Predpostavljena lokacija",
+  "map_showGuessedLocations": "Pokaži lokacije domnevnih not."
 }

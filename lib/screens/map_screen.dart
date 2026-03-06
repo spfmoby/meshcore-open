@@ -15,6 +15,7 @@ import '../models/app_settings.dart';
 import '../models/channel.dart';
 import '../models/contact.dart';
 import '../services/app_settings_service.dart';
+import '../services/path_history_service.dart';
 import '../services/map_marker_service.dart';
 import '../services/map_tile_cache_service.dart';
 import '../utils/contact_search.dart';
@@ -64,6 +65,8 @@ class _MapScreenState extends State<MapScreen> {
   final List<Polyline> _polylines = [];
   bool _legendExpanded = false;
   bool _showNodeLabels = true;
+  List<_GuessedLocation> _cachedGuessedLocations = [];
+  String _guessedLocationsCacheKey = '';
 
   @override
   void initState() {
@@ -119,8 +122,8 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<MeshCoreConnector, AppSettingsService>(
-      builder: (context, connector, settingsService, child) {
+    return Consumer3<MeshCoreConnector, AppSettingsService, PathHistoryService>(
+      builder: (context, connector, settingsService, pathHistory, child) {
         final tileCache = context.read<MapTileCacheService>();
         final settings = settingsService.settings;
         final contacts = connector.contacts;
@@ -159,6 +162,31 @@ class _MapScreenState extends State<MapScreen> {
         final contactsWithLocation = filteredByKeyPrefix
             .where((c) => c.hasLocation)
             .toList();
+
+        // All contacts with a known location — used as anchors regardless of
+        // time/key-prefix filters so that repeaters are always available.
+        final allContactsWithLocation = contacts
+            .where((c) => c.hasLocation)
+            .toList();
+
+        // Compute guessed locations with caching
+        final maxRangeKm = _estimateLoRaRangeKm(connector);
+        final cacheKey =
+            '${filteredByKeyPrefix.length}:${allContactsWithLocation.length}:${pathHistory.version}:${connector.currentSf}:${connector.currentBwHz}:${connector.currentTxPower}:${settings.mapShowGuessedLocations}';
+        if (cacheKey != _guessedLocationsCacheKey) {
+          _guessedLocationsCacheKey = cacheKey;
+          _cachedGuessedLocations = settings.mapShowGuessedLocations
+              ? _computeGuessedLocations(
+                  filteredByKeyPrefix,
+                  allContactsWithLocation,
+                  pathHistory,
+                  maxRangeKm,
+                )
+              : [];
+        }
+        final guessedLocations = settings.mapShowGuessedLocations
+            ? _cachedGuessedLocations
+            : <_GuessedLocation>[];
 
         _polylines.clear();
         _polylines.addAll(
@@ -430,6 +458,8 @@ class _MapScreenState extends State<MapScreen> {
                               size: 34,
                             ),
                           ),
+                        if (!_isBuildingPathTrace)
+                          ...guessedLocations.map(_buildGuessedMarker),
                         ..._buildMarkers(
                           contactsWithLocation,
                           settings,
@@ -489,6 +519,7 @@ class _MapScreenState extends State<MapScreen> {
                     contactsWithLocation,
                     settings,
                     sharedMarkers.length,
+                    guessedLocations.length,
                   ),
                 if (_isBuildingPathTrace) _buildPathTraceOverlay(),
               ],
@@ -509,6 +540,201 @@ class _MapScreenState extends State<MapScreen> {
           ),
         );
       },
+    );
+  }
+
+  List<_GuessedLocation> _computeGuessedLocations(
+    List<Contact> allContacts,
+    List<Contact> withLocation,
+    PathHistoryService pathHistory,
+    double? maxRangeKm,
+  ) {
+    // Index known-location repeaters by their 1-byte hash.
+    // null value = two repeaters share the same hash byte (ambiguous collision).
+    final repeaterByHash = <int, Contact?>{};
+    for (final c in withLocation) {
+      if (c.type == advTypeRepeater) {
+        if (repeaterByHash.containsKey(c.publicKey[0])) {
+          repeaterByHash[c.publicKey[0]] = null; // collision: can't disambiguate
+        } else {
+          repeaterByHash[c.publicKey[0]] = c;
+        }
+      }
+    }
+
+    final result = <_GuessedLocation>[];
+
+    for (final contact in allContacts) {
+      if (contact.hasLocation) continue;
+
+      final anchorSet = <LatLng>{};
+
+      // Collect the contact-side (last-hop) repeater from every known path.
+      // path = [device-side hop, ..., contact-side hop]
+      // Only path.last is actually within radio range of the contact — using
+      // earlier bytes would anchor against our own side of the network.
+      final pathSets = <List<int>>[
+        contact.path.toList(),
+        ...pathHistory
+            .getRecentPaths(contact.publicKeyHex)
+            .map((r) => r.pathBytes),
+      ];
+      final lastHopBytes = <int>{};
+      for (final pathBytes in pathSets) {
+        if (pathBytes.isEmpty) continue;
+        final lastHop = pathBytes.last;
+        lastHopBytes.add(lastHop);
+        final r = repeaterByHash[lastHop];
+        if (r != null) anchorSet.add(LatLng(r.latitude!, r.longitude!));
+      }
+
+      // Fallback: for any last-hop byte with no GPS repeater, average the
+      // positions of contacts with known GPS that share the same last hop.
+      // Those contacts are all adjacent to the same unknown repeater, so their
+      // centroid is a reasonable proxy for its location.
+      for (final byte in lastHopBytes) {
+        if (repeaterByHash.containsKey(byte)) continue;
+        for (final c in withLocation) {
+          if (c.path.isNotEmpty && c.path.last == byte) {
+            anchorSet.add(LatLng(c.latitude!, c.longitude!));
+          }
+        }
+      }
+
+      // Filter anchors that are geometrically inconsistent with radio range.
+      // Two anchors more than 2 * maxRange apart cannot both be in direct radio
+      // range of the same node, so isolated outliers are removed.
+      final anchors = maxRangeKm != null && anchorSet.length > 1
+          ? _filterConsistentAnchors(anchorSet.toList(), maxRangeKm)
+          : anchorSet.toList();
+
+      if (anchors.isEmpty) continue;
+
+      final LatLng position;
+      if (anchors.length == 1) {
+        // Offset single-anchor guesses so they don't overlap the repeater marker.
+        // Use the contact's public key byte as a deterministic angle seed.
+        const offsetDeg = 0.003; // ~330 m at the equator
+        final angle = (contact.publicKey[1] / 255.0) * 2 * pi;
+        position = LatLng(
+          anchors[0].latitude + offsetDeg * cos(angle),
+          anchors[0].longitude + offsetDeg * sin(angle),
+        );
+      } else {
+        double lat = 0, lon = 0;
+        for (final a in anchors) {
+          lat += a.latitude;
+          lon += a.longitude;
+        }
+        position = LatLng(lat / anchors.length, lon / anchors.length);
+      }
+      result.add(
+        _GuessedLocation(
+          contact: contact,
+          position: position,
+          highConfidence: anchors.length >= 2,
+        ),
+      );
+    }
+
+    return result;
+  }
+
+  /// Estimates the free-space maximum LoRa range in km from the connected
+  /// device's current radio parameters.  Returns null if parameters are unknown.
+  double? _estimateLoRaRangeKm(MeshCoreConnector connector) {
+    final freqHz = connector.currentFreqHz;
+    final bwHz = connector.currentBwHz;
+    final sf = connector.currentSf;
+    final txPower = connector.currentTxPower;
+    if (freqHz == null || bwHz == null || sf == null || txPower == null) {
+      return null;
+    }
+    // LoRa receiver sensitivity = thermal noise + NF + required demod SNR
+    const noiseFigureDb = 6.0;
+    final thermalNoiseDbm = -174.0 + 10 * log(bwHz.toDouble()) / ln10;
+    final sensitivityDbm =
+        thermalNoiseDbm + noiseFigureDb + _sfToRequiredSnrDb(sf);
+    // FSPL at max range equals link budget:
+    //   FSPL = 20*log10(d_m) + 20*log10(f_hz) - 147.55
+    final linkBudgetDb = txPower.toDouble() - sensitivityDbm;
+    final exponent =
+        (linkBudgetDb + 147.55 - 20 * log(freqHz.toDouble()) / ln10) / 20;
+    return pow(10, exponent) / 1000;
+  }
+
+  double _sfToRequiredSnrDb(int sf) {
+    switch (sf) {
+      case 5:
+        return -2.5;
+      case 6:
+        return -5.0;
+      case 7:
+        return -7.5;
+      case 8:
+        return -10.0;
+      case 9:
+        return -12.5;
+      case 10:
+        return -15.0;
+      case 11:
+        return -17.5;
+      case 12:
+        return -20.0;
+      default:
+        return -10.0;
+    }
+  }
+
+  /// Removes anchors that have no neighbour within 2 * maxRangeKm.
+  /// A node cannot be simultaneously in radio range of two points farther apart
+  /// than twice the expected maximum range.
+  List<LatLng> _filterConsistentAnchors(
+    List<LatLng> anchors,
+    double maxRangeKm,
+  ) {
+    const distance = Distance();
+    final maxDistM = maxRangeKm * 2000;
+    return anchors
+        .where(
+          (a) => anchors.any((b) => b != a && distance(a, b) <= maxDistM),
+        )
+        .toList();
+  }
+
+  Marker _buildGuessedMarker(_GuessedLocation guess) {
+    final color = _getNodeColor(guess.contact.type);
+    return Marker(
+      point: guess.position,
+      width: 35,
+      height: 35,
+      child: GestureDetector(
+        onTap: () => _showNodeInfo(
+          context,
+          guess.contact,
+          guessedPosition: guess.position,
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: guess.highConfidence ? 0.55 : 0.30),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.not_listed_location,
+            color: Colors.white,
+            size: 20,
+          ),
+        ),
+      ),
     );
   }
 
@@ -657,6 +883,7 @@ class _MapScreenState extends State<MapScreen> {
     List<Contact> contactsWithLocation,
     settings,
     int markerCount,
+    int guessedCount,
   ) {
     int nodeCount = 0;
     for (final contact in contactsWithLocation) {
@@ -696,7 +923,12 @@ class _MapScreenState extends State<MapScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          context.l10n.map_nodesCount(nodeCount),
+                          context.l10n.map_nodesCount(
+                            nodeCount +
+                                (settings.mapShowGuessedLocations
+                                    ? guessedCount
+                                    : 0),
+                          ),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -764,6 +996,12 @@ class _MapScreenState extends State<MapScreen> {
                       context.l10n.map_pinPublic,
                       Colors.orange,
                     ),
+                    if (settings.mapShowGuessedLocations && guessedCount > 0)
+                      _buildLegendItem(
+                        Icons.not_listed_location,
+                        context.l10n.map_guessedLocation,
+                        Colors.grey,
+                      ),
                   ],
                 ),
               ),
@@ -952,7 +1190,11 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  void _showNodeInfo(BuildContext context, Contact contact) {
+  void _showNodeInfo(
+    BuildContext context,
+    Contact contact, {
+    LatLng? guessedPosition,
+  }) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -972,10 +1214,16 @@ class _MapScreenState extends State<MapScreen> {
           children: [
             _buildInfoRow('Type', contact.typeLabel),
             _buildInfoRow('Path', contact.pathLabel),
-            _buildInfoRow(
-              'Location',
-              '${contact.latitude!.toStringAsFixed(6)}, ${contact.longitude!.toStringAsFixed(6)}',
-            ),
+            if (contact.hasLocation)
+              _buildInfoRow(
+                'Location',
+                '${contact.latitude!.toStringAsFixed(6)}, ${contact.longitude!.toStringAsFixed(6)}',
+              )
+            else if (guessedPosition != null)
+              _buildInfoRow(
+                'Est. Location',
+                '~${guessedPosition.latitude.toStringAsFixed(6)}, ${guessedPosition.longitude.toStringAsFixed(6)}',
+              ),
             _buildInfoRow(
               context.l10n.map_lastSeen,
               _formatLastSeen(contact.lastSeen),
@@ -1481,6 +1729,14 @@ class _MapScreenState extends State<MapScreen> {
                     },
                     contentPadding: EdgeInsets.zero,
                   ),
+                  CheckboxListTile(
+                    title: Text(context.l10n.map_showGuessedLocations),
+                    value: settings.mapShowGuessedLocations,
+                    onChanged: (value) {
+                      service.setMapShowGuessedLocations(value ?? true);
+                    },
+                    contentPadding: EdgeInsets.zero,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     context.l10n.map_keyPrefix,
@@ -1742,6 +1998,18 @@ class _MapScreenState extends State<MapScreen> {
       ),
     );
   }
+}
+
+class _GuessedLocation {
+  final Contact contact;
+  final LatLng position;
+  final bool highConfidence;
+
+  _GuessedLocation({
+    required this.contact,
+    required this.position,
+    required this.highConfidence,
+  });
 }
 
 class _MarkerPayload {

@@ -1436,6 +1436,13 @@ class AppLocalizationsSk extends AppLocalizations {
   String get map_showSharedMarkers => 'Zobraziť zdieľané značky';
 
   @override
+  String get map_showGuessedLocations =>
+      'Zobraziť umiestnenia odhadnutých uzlov';
+
+  @override
+  String get map_guessedLocation => 'Odhadnutá lokalita';
+
+  @override
   String get map_lastSeenTime => 'Posledný čas sledovania';
 
   @override

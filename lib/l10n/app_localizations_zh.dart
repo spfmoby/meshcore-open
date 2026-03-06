@@ -1364,6 +1364,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get map_showSharedMarkers => '显示共享标记';
 
   @override
+  String get map_showGuessedLocations => '显示猜测的节点位置';
+
+  @override
+  String get map_guessedLocation => '猜测的位置';
+
+  @override
   String get map_lastSeenTime => '最后在线时间';
 
   @override

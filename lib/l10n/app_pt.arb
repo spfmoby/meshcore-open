@@ -1826,5 +1826,7 @@
   "contactsSettings_overwriteOldestSubtitle": "Quando a lista de contatos estiver cheia, o contato mais antigo não favoritado será substituído.",
   "common_deleteAll": "Excluir Tudo",
   "discoveredContacts_deleteContactAll": "Excluir Todos os Contatos Descobertos",
-  "discoveredContacts_deleteContactAllContent": "Tem certeza de que deseja excluir todos os contatos descobertos?"
+  "discoveredContacts_deleteContactAllContent": "Tem certeza de que deseja excluir todos os contatos descobertos?",
+  "map_guessedLocation": "Localização estimada",
+  "map_showGuessedLocations": "Mostrar as localizações dos nós estimados"
 }

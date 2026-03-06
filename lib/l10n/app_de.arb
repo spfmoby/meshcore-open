@@ -1854,5 +1854,7 @@
   "contactsSettings_overwriteOldestSubtitle": "Wenn die Kontaktliste voll ist, wird der älteste nicht favorisierte Kontakt ersetzt.",
   "common_deleteAll": "Alles löschen",
   "discoveredContacts_deleteContactAllContent": "Sind Sie sicher, dass Sie alle gefundenen Kontakte löschen möchten?",
-  "discoveredContacts_deleteContactAll": "Alle entdeckten Kontakte löschen"
+  "discoveredContacts_deleteContactAll": "Alle entdeckten Kontakte löschen",
+  "map_showGuessedLocations": "Zeige die vermuteten Knotenpositionen",
+  "map_guessedLocation": "Geschätzter Ort"
 }

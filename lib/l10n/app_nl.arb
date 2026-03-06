@@ -1826,5 +1826,7 @@
   "contactsSettings_overwriteOldestSubtitle": "Wanneer de contactenlijst vol is, wordt de oudste niet-favoriete contactpersoon vervangen.",
   "common_deleteAll": "Alles verwijderen",
   "discoveredContacts_deleteContactAll": "Verwijder alle ontdekte contacten",
-  "discoveredContacts_deleteContactAllContent": "Weet u zeker dat u alle ontdekte contacten wilt verwijderen?"
+  "discoveredContacts_deleteContactAllContent": "Weet u zeker dat u alle ontdekte contacten wilt verwijderen?",
+  "map_guessedLocation": "Geroerde locatie",
+  "map_showGuessedLocations": "Toon de voorspelde locaties van de knopen"
 }

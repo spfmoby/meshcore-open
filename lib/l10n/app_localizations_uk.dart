@@ -1442,6 +1442,13 @@ class AppLocalizationsUk extends AppLocalizations {
   String get map_showSharedMarkers => 'Показувати спільні маркери';
 
   @override
+  String get map_showGuessedLocations =>
+      'Показати місцезнаходження передбачених вузлів';
+
+  @override
+  String get map_guessedLocation => 'Визначено місцезнаходження';
+
+  @override
   String get map_lastSeenTime => 'Час останньої активності';
 
   @override

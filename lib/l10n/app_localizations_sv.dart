@@ -1428,6 +1428,13 @@ class AppLocalizationsSv extends AppLocalizations {
   String get map_showSharedMarkers => 'Visa delade markörer';
 
   @override
+  String get map_showGuessedLocations =>
+      'Visa upp de antagna nodernas placeringar';
+
+  @override
+  String get map_guessedLocation => 'Gissad plats';
+
+  @override
   String get map_lastSeenTime => 'Senaste Visats Tid';
 
   @override

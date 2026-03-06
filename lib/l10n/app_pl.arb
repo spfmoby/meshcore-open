@@ -1826,5 +1826,7 @@
   "contactsSettings_overwriteOldestSubtitle": "Gdy lista kontaktów jest pełna, najstarszy nieulubiony kontakt zostanie zastąpiony.",
   "common_deleteAll": "Usuń wszystko",
   "discoveredContacts_deleteContactAllContent": "Czy na pewno chcesz usunąć wszystkie znalezione kontakty?",
-  "discoveredContacts_deleteContactAll": "Usuń wszystkie odkryte kontakty"
+  "discoveredContacts_deleteContactAll": "Usuń wszystkie odkryte kontakty",
+  "map_guessedLocation": "Wydana lokalizacja",
+  "map_showGuessedLocations": "Wyświetl lokalizacje zgadanych węzłów"
 }

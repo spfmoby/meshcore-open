@@ -15,6 +15,9 @@ class PathHistoryService extends ChangeNotifier {
   final List<String> _cacheAccessOrder = [];
 
   static const int _maxHistoryEntries = 100;
+
+  int _version = 0;
+  int get version => _version;
   static const int _autoRotationTopCount = 3;
 
   PathHistoryService(this._storage);
@@ -185,6 +188,7 @@ class PathHistoryService extends ChangeNotifier {
   ) {
     var history = _cache[contactPubKeyHex];
     if (history == null) return;
+    _version++;
 
     final existing = _findPathRecord(contactPubKeyHex, pathBytes);
     if (existing != null) {
@@ -241,6 +245,7 @@ class PathHistoryService extends ChangeNotifier {
         _cache[contactPubKeyHex] = loaded;
         _trackAccess(contactPubKeyHex);
         _evictIfNeeded();
+        _version++;
         notifyListeners();
       }
     });

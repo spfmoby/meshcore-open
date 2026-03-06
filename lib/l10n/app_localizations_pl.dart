@@ -1441,6 +1441,13 @@ class AppLocalizationsPl extends AppLocalizations {
   String get map_showSharedMarkers => 'Pokaż współdzielone znaki.';
 
   @override
+  String get map_showGuessedLocations =>
+      'Wyświetl lokalizacje zgadanych węzłów';
+
+  @override
+  String get map_guessedLocation => 'Wydana lokalizacja';
+
+  @override
   String get map_lastSeenTime => 'Ostatni raz widiany';
 
   @override

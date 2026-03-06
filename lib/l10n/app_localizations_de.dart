@@ -1443,6 +1443,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get map_showSharedMarkers => 'Zeige gemeinsam genutzte Marker';
 
   @override
+  String get map_showGuessedLocations =>
+      'Zeige die vermuteten Knotenpositionen';
+
+  @override
+  String get map_guessedLocation => 'Geschätzter Ort';
+
+  @override
   String get map_lastSeenTime => 'Letzte Sichtung';
 
   @override

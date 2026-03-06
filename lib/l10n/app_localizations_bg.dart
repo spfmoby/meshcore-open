@@ -1444,6 +1444,13 @@ class AppLocalizationsBg extends AppLocalizations {
   String get map_showSharedMarkers => 'Покажи споделени маркери';
 
   @override
+  String get map_showGuessedLocations =>
+      'Покажете местоположенията на предположените възли.';
+
+  @override
+  String get map_guessedLocation => 'Предполагано местоположение';
+
+  @override
   String get map_lastSeenTime => 'Последна видяна дата';
 
   @override

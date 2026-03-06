@@ -1826,5 +1826,7 @@
   "contactsSettings_overwriteOldestSubtitle": "Коли список контактів заповнений, найстарший контакт без позначки улюбленого буде замінений.",
   "common_deleteAll": "Видалити все",
   "discoveredContacts_deleteContactAll": "Видалити всі виявлені контакти",
-  "discoveredContacts_deleteContactAllContent": "Ви впевнені, що хочете видалити всі виявлені контакти?"
+  "discoveredContacts_deleteContactAllContent": "Ви впевнені, що хочете видалити всі виявлені контакти?",
+  "map_showGuessedLocations": "Показати місцезнаходження передбачених вузлів",
+  "map_guessedLocation": "Визначено місцезнаходження"
 }

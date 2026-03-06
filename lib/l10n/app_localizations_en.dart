@@ -1422,6 +1422,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get map_showSharedMarkers => 'Show shared markers';
 
   @override
+  String get map_showGuessedLocations => 'Show guessed node locations';
+
+  @override
+  String get map_guessedLocation => 'Guessed location';
+
+  @override
   String get map_lastSeenTime => 'Last Seen Time';
 
   @override

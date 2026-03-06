@@ -1131,6 +1131,7 @@ class _ContactsScreenState extends State<ContactsScreen>
                             contact.name,
                           ),
                           path: contact.traceRouteBytes ?? Uint8List(0),
+                          targetContact: contact,
                         ),
                       ),
                     );

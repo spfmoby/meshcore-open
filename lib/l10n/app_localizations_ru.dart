@@ -1443,6 +1443,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get map_showSharedMarkers => 'Показывать общие метки';
 
   @override
+  String get map_showGuessedLocations =>
+      'Отобразить предполагаемые места расположения узлов';
+
+  @override
+  String get map_guessedLocation => 'Угаданное место';
+
+  @override
   String get map_lastSeenTime => 'Время последнего появления';
 
   @override

@@ -1448,6 +1448,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get map_showSharedMarkers => 'Afficher les marqueurs partagés';
 
   @override
+  String get map_showGuessedLocations =>
+      'Afficher les emplacements des nœuds estimés';
+
+  @override
+  String get map_guessedLocation => 'Lieu deviné';
+
+  @override
   String get map_lastSeenTime => 'Dernière fois vu';
 
   @override

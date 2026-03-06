@@ -1826,5 +1826,7 @@
   "contactsSettings_overwriteOldestSubtitle": "Когато списъкът с контакти е пълен, най-старият неключов контакт ще бъде заменен.",
   "discoveredContacts_deleteContactAll": "Изтриване на Всички Открити Контакти",
   "discoveredContacts_deleteContactAllContent": "Сигурни ли сте, че искате да изтриете всички открити контакти?",
-  "common_deleteAll": "Изтрий всичко"
+  "common_deleteAll": "Изтрий всичко",
+  "map_guessedLocation": "Предполагано местоположение",
+  "map_showGuessedLocations": "Покажете местоположенията на предположените възли."
 }

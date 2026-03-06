@@ -1440,6 +1440,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get map_showSharedMarkers => 'Mostra i segnaposto condivisi';
 
   @override
+  String get map_showGuessedLocations => 'Mostra le posizioni stimate dei nodi';
+
+  @override
+  String get map_guessedLocation => 'Località indovinata';
+
+  @override
   String get map_lastSeenTime => 'Ultimo Tempo di Visualizzazione';
 
   @override

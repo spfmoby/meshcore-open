@@ -1826,5 +1826,7 @@
   "contactsSettings_overwriteOldestSubtitle": "Lorsque la liste de contacts est pleine, le contact le plus ancien non favori sera remplacé.",
   "common_deleteAll": "Supprimer tout",
   "discoveredContacts_deleteContactAll": "Supprimer tous les contacts découverts",
-  "discoveredContacts_deleteContactAllContent": "Êtes-vous sûr de vouloir supprimer tous les contacts découverts ?"
+  "discoveredContacts_deleteContactAllContent": "Êtes-vous sûr de vouloir supprimer tous les contacts découverts ?",
+  "map_showGuessedLocations": "Afficher les emplacements des nœuds estimés",
+  "map_guessedLocation": "Lieu deviné"
 }

@@ -1442,6 +1442,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get map_showSharedMarkers => 'Mostrar marcadores compartilhados';
 
   @override
+  String get map_showGuessedLocations =>
+      'Mostrar as localizações dos nós estimados';
+
+  @override
+  String get map_guessedLocation => 'Localização estimada';
+
+  @override
   String get map_lastSeenTime => 'Último Tempo de Visualização';
 
   @override

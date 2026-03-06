@@ -79,6 +79,7 @@ class _PathManagementDialogState extends State<_PathManagementDialog> {
                   title: context.l10n.contacts_repeaterPathTrace,
                   path: Uint8List.fromList(pathBytes),
                   flipPathRound: true,
+                  targetContact: widget.contact,
                 ),
               ),
             ),

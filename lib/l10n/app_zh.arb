@@ -1831,5 +1831,7 @@
   "contactsSettings_overwriteOldestSubtitle": "当联系人列表已满时，将替换最老的非收藏联系人。",
   "common_deleteAll": "删除全部",
   "discoveredContacts_deleteContactAllContent": "您确定要删除所有发现的联系人吗？",
-  "discoveredContacts_deleteContactAll": "删除所有发现的联系人"
+  "discoveredContacts_deleteContactAll": "删除所有发现的联系人",
+  "map_showGuessedLocations": "显示猜测的节点位置",
+  "map_guessedLocation": "猜测的位置"
 }

@@ -818,6 +818,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   title: context.l10n.contacts_repeaterPathTrace,
                   path: Uint8List.fromList(pathBytes),
                   flipPathRound: true,
+                  targetContact: widget.contact,
                 ),
               ),
             ),
