@@ -4,6 +4,7 @@ import 'dart:typed_data';
 // Buffer Reader - sequential binary data reader with pointer tracking
 class BufferReader {
   int _pointer = 0;
+  int _lastPointer = 0;
   final Uint8List _buffer;
 
   BufferReader(Uint8List data) : _buffer = Uint8List.fromList(data);
@@ -13,6 +14,7 @@ class BufferReader {
   int readByte() => readBytes(1)[0];
 
   Uint8List readBytes(int count) {
+    _lastPointer = _pointer;
     if (_pointer + count > _buffer.length) {
       throw RangeError(
         'Attempted to read $count bytes at offset $_pointer, but only $remaining bytes remaining in buffer of length ${_buffer.length}',
@@ -24,6 +26,7 @@ class BufferReader {
   }
 
   void skipBytes(int count) {
+    _lastPointer = _pointer;
     if (_pointer + count > _buffer.length) {
       throw RangeError(
         'Attempted to skip $count bytes at offset $_pointer, but only $remaining bytes remaining in buffer of length ${_buffer.length}',
@@ -35,6 +38,7 @@ class BufferReader {
   Uint8List readRemainingBytes() => readBytes(remaining);
 
   String readString() {
+    _lastPointer = _pointer;
     final value = readRemainingBytes();
     try {
       return utf8.decode(Uint8List.fromList(value), allowMalformed: true);
@@ -43,13 +47,32 @@ class BufferReader {
     }
   }
 
-  String readCString(int maxLength) {
+  String readCStringGreedy(int maxLength) {
+    _lastPointer = _pointer;
     final value = <int>[];
     final bytes = readBytes(maxLength);
     for (final byte in bytes) {
       if (byte == 0) break;
       value.add(byte);
     }
+    try {
+      return utf8.decode(Uint8List.fromList(value), allowMalformed: true);
+    } catch (e) {
+      return String.fromCharCodes(value); // Latin-1 fallback
+    }
+  }
+
+  String readCString(int maxLength) {
+    final backupPointer = _pointer;
+    final value = <int>[];
+    int counter = 0;
+    while (counter < maxLength) {
+      final byte = readByte();
+      if (byte == 0) break;
+      value.add(byte);
+      counter++;
+    }
+    _lastPointer = backupPointer;
     try {
       return utf8.decode(Uint8List.fromList(value), allowMalformed: true);
     } catch (e) {
@@ -78,6 +101,9 @@ class BufferReader {
     if ((value & 0x800000) != 0) value -= 0x1000000;
     return value;
   }
+
+  void resetPointer() => _pointer = 0;
+  void rewind() => _pointer = _lastPointer;
 }
 
 // Buffer Writer - accumulating binary data builder

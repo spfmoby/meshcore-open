@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'package:meshcore_open/utils/app_logger.dart';
+
 import '../connector/meshcore_protocol.dart';
 
 class Contact {
@@ -166,28 +168,27 @@ class Contact {
 
   static Contact? fromFrame(Uint8List data) {
     if (data.isEmpty) return null;
-    if (data[0] != respCodeContact) return null;
+    final reader = BufferReader(data);
     try {
-      final pubKey = Uint8List.fromList(
-        data.sublist(contactPubKeyOffset, contactPubKeyOffset + pubKeySize),
-      );
-      final type = data[contactTypeOffset];
-      final flags = data[contactFlagsOffset];
-      final pathLen = data[contactPathLenOffset].toSigned(8);
+      final respCode = reader.readByte();
+      if (respCode != respCodeContact && respCode != pushCodeNewAdvert) {
+        return null;
+      }
+      final pubKey = reader.readBytes(pubKeySize);
+      final type = reader.readByte();
+      final flags = reader.readByte();
+      final pathLen = reader.readByte();
       final safePathLen = pathLen > 0
           ? (pathLen > maxPathSize ? maxPathSize : pathLen)
           : 0;
-      final pathBytes = safePathLen > 0
-          ? Uint8List.fromList(
-              data.sublist(contactPathOffset, contactPathOffset + safePathLen),
-            )
-          : Uint8List(0);
-      final name = readCString(data, contactNameOffset, maxNameSize);
-      final lastmod = readUint32LE(data, contactLastModOffset);
+      final pathBytes = reader.readBytes(maxPathSize).sublist(0, safePathLen);
+      final name = reader.readCStringGreedy(maxNameSize);
+
+      final lastMod = reader.readUInt32LE();
 
       double? lat, lon;
-      final latRaw = readInt32LE(data, contactLatOffset);
-      final lonRaw = readInt32LE(data, contactLonOffset);
+      final latRaw = reader.readInt32LE();
+      final lonRaw = reader.readInt32LE();
       if (latRaw != 0 || lonRaw != 0) {
         lat = latRaw / 1e6;
         lon = lonRaw / 1e6;
@@ -198,14 +199,14 @@ class Contact {
         name: name.isEmpty ? 'Unknown' : name,
         type: type,
         flags: flags,
-        pathLength: pathLen,
+        pathLength: pathLen > 0 ? (pathLen > maxPathSize ? -1 : pathLen) : -1,
         path: pathBytes,
         latitude: lat,
         longitude: lon,
-        lastSeen: DateTime.fromMillisecondsSinceEpoch(lastmod * 1000),
+        lastSeen: DateTime.fromMillisecondsSinceEpoch(lastMod * 1000),
       );
     } catch (e) {
-      // If parsing fails, return null
+      appLogger.error('Failed to parse contact frame: $e');
       return null;
     }
   }

@@ -2311,7 +2311,7 @@ class MeshCoreConnector extends ChangeNotifier {
       case pushCodeNewAdvert:
         debugPrint('Got New CONTACT');
         // It's the same format as respCodeContact, so we can reuse the handler
-        _handleContact(frame);
+        _handleContact(frame, isContact: false);
         break;
       case respCodeContact:
         debugPrint('Got CONTACT');
@@ -2660,7 +2660,7 @@ class MeshCoreConnector extends ChangeNotifier {
     }
   }
 
-  void _handleContact(Uint8List frame) {
+  void _handleContact(Uint8List frame, {bool isContact = true}) {
     final contact = Contact.fromFrame(frame);
     if (contact != null) {
       if (contact.type == advTypeRepeater) {
@@ -2699,11 +2699,23 @@ class MeshCoreConnector extends ChangeNotifier {
           tag: 'Connector',
         );
       } else {
-        _contacts.add(contact);
-        appLogger.info(
-          'Added new contact ${contact.name}: pathLen=${contact.pathLength}',
-          tag: 'Connector',
-        );
+        if ((_autoAddUsers && contact.type == advTypeChat) ||
+            (_autoAddRepeaters && contact.type == advTypeRepeater) ||
+            (_autoAddRoomServers && contact.type == advTypeRoom) ||
+            (_autoAddSensors && contact.type == advTypeSensor) ||
+            isContact) {
+          _contacts.add(contact);
+          appLogger.info(
+            'Added new contact ${contact.name}: pathLen=${contact.pathLength}',
+            tag: 'Connector',
+          );
+        } else {
+          appLogger.info(
+            "Discovered contact ${contact.name} (type ${contact.typeLabel}) not added due to auto-add settings",
+            tag: 'Connector',
+          );
+          return;
+        }
       }
       _knownContactKeys.add(contact.publicKeyHex);
       _loadMessagesForContact(contact.publicKeyHex);
@@ -4275,43 +4287,39 @@ class MeshCoreConnector extends ChangeNotifier {
 
   void _handleRxData(Uint8List frame) {
     final packet = BufferReader(frame);
-    double snr = 0.0;
-    int routeType = 0;
-    int payloadType = 0;
-    Uint8List pathBytes = Uint8List(0);
-    Uint8List payload = Uint8List(0);
     try {
       packet.skipBytes(1); // Skip frame type byte
-      snr = packet.readInt8() / 4.0;
+      final snr = packet.readInt8() / 4.0;
       packet.skipBytes(1); // Skip RSSI byte
       //final rssi = packet.readByte();
       final header = packet.readByte();
-      routeType = header & 0x03;
-      payloadType = (header >> 2) & 0x0F;
+      final routeType = header & 0x03;
+      final payloadType = (header >> 2) & 0x0F;
       if (routeType == _routeTransportFlood ||
           routeType == _routeTransportDirect) {
         packet.skipBytes(4); // Skip transport-specific bytes
       }
       //final payloadVer = (header >> 6) & 0x03;
       final pathLen = packet.readByte();
-      pathBytes = packet.readBytes(pathLen);
-      payload = packet.readBytes(packet.remaining);
+      final pathBytes = packet.readBytes(pathLen);
+      final payload = packet.readBytes(packet.remaining);
+
+      final rawPacket = frame.sublist(3);
+      switch (payloadType) {
+        case payloadTypeADVERT:
+          _handlePayloadAdvertReceived(
+            rawPacket,
+            payload,
+            pathBytes,
+            routeType,
+            snr,
+          );
+          break;
+        default:
+      }
     } catch (e) {
       appLogger.warn('Malformed RX frame: $e', tag: 'Connector');
       return;
-    }
-    final rawPacket = frame.sublist(3);
-    switch (payloadType) {
-      case payloadTypeADVERT:
-        _handlePayloadAdvertReceived(
-          rawPacket,
-          payload,
-          pathBytes,
-          routeType,
-          snr,
-        );
-        break;
-      default:
     }
   }
 
@@ -4379,7 +4387,7 @@ class MeshCoreConnector extends ChangeNotifier {
         publicKey: publicKey,
         name: name,
         type: type,
-        pathLength: pathBytes.length,
+        pathLength: pathBytes.isEmpty ? -1 : pathBytes.length,
         path: Uint8List.fromList(
           pathBytes.reversed.toList(),
         ), // Store path in reverse for easier use in outgoing messages
