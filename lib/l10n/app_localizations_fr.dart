@@ -794,23 +794,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String contacts_lastSeenMinsAgo(int minutes) {
-    return 'Vu il y a $minutes minutes';
+    return '~ $minutes min.';
   }
 
   @override
-  String get contacts_lastSeenHourAgo => 'Vu il y a 1 heure';
+  String get contacts_lastSeenHourAgo => '~ 1 heure';
 
   @override
   String contacts_lastSeenHoursAgo(int hours) {
-    return 'Vu il y a $hours heures';
+    return '~ $hours heures';
   }
 
   @override
-  String get contacts_lastSeenDayAgo => 'Vu il y a 1 jour';
+  String get contacts_lastSeenDayAgo => '~ 1 jour';
 
   @override
   String contacts_lastSeenDaysAgo(int days) {
-    return 'Vu il y a $days jours';
+    return '~ $days jours';
   }
 
   @override

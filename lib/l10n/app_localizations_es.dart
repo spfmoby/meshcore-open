@@ -792,23 +792,23 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String contacts_lastSeenMinsAgo(int minutes) {
-    return 'Última vez visto hace $minutes minutos.';
+    return '~ $minutes min.';
   }
 
   @override
-  String get contacts_lastSeenHourAgo => 'Última vez que se vio hace 1 hora';
+  String get contacts_lastSeenHourAgo => '~ 1 hora';
 
   @override
   String contacts_lastSeenHoursAgo(int hours) {
-    return 'Última vez visto hace $hours horas.';
+    return '~ $hours horas';
   }
 
   @override
-  String get contacts_lastSeenDayAgo => 'Última vez que se vio hace 1 día';
+  String get contacts_lastSeenDayAgo => '~ 1 día';
 
   @override
   String contacts_lastSeenDaysAgo(int days) {
-    return 'Última vez visto hace $days días.';
+    return '~ $days días';
   }
 
   @override

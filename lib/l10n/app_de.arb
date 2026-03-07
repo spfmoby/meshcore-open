@@ -296,8 +296,8 @@
   "contacts_filterContacts": "Filtert Kontakte...",
   "contacts_noContactsMatchFilter": "Keine Kontakte passen zu Ihrem Filter",
   "contacts_noMembers": "Keine Mitglieder",
-  "contacts_lastSeenNow": "gerade gesehen",
-  "contacts_lastSeenMinsAgo": "Letzte Sichtung vor {minutes} Minuten.",
+  "contacts_lastSeenNow": "kürzlich",
+  "contacts_lastSeenMinsAgo": "~ {minutes} Min.",
   "@contacts_lastSeenMinsAgo": {
     "placeholders": {
       "minutes": {
@@ -305,8 +305,8 @@
       }
     }
   },
-  "contacts_lastSeenHourAgo": "Letzte Sichtung vor 1 Stunde.",
-  "contacts_lastSeenHoursAgo": "Letzte Sichtung vor {hours} Stunden.",
+  "contacts_lastSeenHourAgo": "~ 1 Std.",
+  "contacts_lastSeenHoursAgo": "~ {hours} Std.",
   "@contacts_lastSeenHoursAgo": {
     "placeholders": {
       "hours": {
@@ -314,8 +314,8 @@
       }
     }
   },
-  "contacts_lastSeenDayAgo": "Letzte Sichtung vor 1 Tag",
-  "contacts_lastSeenDaysAgo": "Letzte Sichtung {days} Tage zuvor",
+  "contacts_lastSeenDayAgo": "~ 1 Tag",
+  "contacts_lastSeenDaysAgo": "~ {days} Tage",
   "@contacts_lastSeenDaysAgo": {
     "placeholders": {
       "days": {

@@ -1519,37 +1519,37 @@ abstract class AppLocalizations {
   /// No description provided for @contacts_lastSeenNow.
   ///
   /// In en, this message translates to:
-  /// **'Last seen now'**
+  /// **'recently'**
   String get contacts_lastSeenNow;
 
   /// No description provided for @contacts_lastSeenMinsAgo.
   ///
   /// In en, this message translates to:
-  /// **'Last seen {minutes} mins ago'**
+  /// **'~ {minutes} min.'**
   String contacts_lastSeenMinsAgo(int minutes);
 
   /// No description provided for @contacts_lastSeenHourAgo.
   ///
   /// In en, this message translates to:
-  /// **'Last seen 1 hour ago'**
+  /// **'~ 1 hour'**
   String get contacts_lastSeenHourAgo;
 
   /// No description provided for @contacts_lastSeenHoursAgo.
   ///
   /// In en, this message translates to:
-  /// **'Last seen {hours} hours ago'**
+  /// **'~ {hours} hours'**
   String contacts_lastSeenHoursAgo(int hours);
 
   /// No description provided for @contacts_lastSeenDayAgo.
   ///
   /// In en, this message translates to:
-  /// **'Last seen 1 day ago'**
+  /// **'~ 1 day'**
   String get contacts_lastSeenDayAgo;
 
   /// No description provided for @contacts_lastSeenDaysAgo.
   ///
   /// In en, this message translates to:
-  /// **'Last seen {days} days ago'**
+  /// **'~ {days} days'**
   String contacts_lastSeenDaysAgo(int days);
 
   /// No description provided for @channels_title.

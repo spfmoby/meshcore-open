@@ -778,27 +778,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contacts_noMembers => 'No members';
 
   @override
-  String get contacts_lastSeenNow => 'Last seen now';
+  String get contacts_lastSeenNow => 'recently';
 
   @override
   String contacts_lastSeenMinsAgo(int minutes) {
-    return 'Last seen $minutes mins ago';
+    return '~ $minutes min.';
   }
 
   @override
-  String get contacts_lastSeenHourAgo => 'Last seen 1 hour ago';
+  String get contacts_lastSeenHourAgo => '~ 1 hour';
 
   @override
   String contacts_lastSeenHoursAgo(int hours) {
-    return 'Last seen $hours hours ago';
+    return '~ $hours hours';
   }
 
   @override
-  String get contacts_lastSeenDayAgo => 'Last seen 1 day ago';
+  String get contacts_lastSeenDayAgo => '~ 1 day';
 
   @override
   String contacts_lastSeenDaysAgo(int days) {
-    return 'Last seen $days days ago';
+    return '~ $days days';
   }
 
   @override
