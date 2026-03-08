@@ -1859,5 +1859,33 @@
   "usbStatus_connecting": "Povezava z USB napravo...",
   "usbStatus_searching": "Iskanje USB naprav...",
   "usbConnectionFailed": "Napaka pri povezavi preko USB: {error}",
-  "usbErrorConnectTimedOut": "Vzpostavitve ni bilo mogo. Prosimo, da se prepričate, da ima naprave trenutno nameštan firmware USB Companion."
+  "usbErrorConnectTimedOut": "Vzpostavitve ni bilo mogo. Prosimo, da se prepričate, da ima naprave trenutno nameštan firmware USB Companion.",
+  "@tcpStatus_connectingTo": {
+    "placeholders": {
+      "endpoint": {
+        "type": "String"
+      }
+    }
+  },
+  "@tcpConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionChoiceTcpLabel": "TCP",
+  "tcpHostLabel": "IP naslov",
+  "tcpHostHint": "192.168.40.10",
+  "tcpScreenTitle": "Komunicirajte preko protokola TCP",
+  "tcpPortLabel": "Pril",
+  "tcpPortHint": "5000",
+  "tcpStatus_notConnected": "Vnesite končni naslov in se povežite",
+  "tcpStatus_connecting": "Povezava z TCP koncem...",
+  "tcpStatus_connectingTo": "Povezava z {endpoint}...",
+  "tcpErrorHostRequired": "Potrebna je IP-naslov.",
+  "tcpErrorPortInvalid": "Port mora biti med 1 in 65535.",
+  "tcpErrorUnsupported": "Transport preko protokola TCP ni podprt na tej platformi.",
+  "tcpErrorTimedOut": "Povezava TCP je presegla časovno obdobje.",
+  "tcpConnectionFailed": "Napaka pri povezavi TCP: {error}"
 }
