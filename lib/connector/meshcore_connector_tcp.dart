@@ -22,9 +22,6 @@ class MeshCoreTcpManager {
   }
 
   Future<void> disconnect() async {
-    if (!_service.isConnected && _service.activeEndpoint == null) {
-      return;
-    }
     _debugLog?.info('TcpManager.disconnect', tag: 'TCP');
     await _service.disconnect();
   }

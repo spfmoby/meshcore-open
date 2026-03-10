@@ -175,6 +175,11 @@ class TcpTransportService {
   }
 
   void _handleSocketDone() {
+    if (_status == TcpTransportStatus.disconnecting ||
+        _status == TcpTransportStatus.disconnected) {
+      return;
+    }
+    _addFrameError(StateError('TCP socket closed by remote endpoint'));
     unawaited(disconnect());
   }
 
