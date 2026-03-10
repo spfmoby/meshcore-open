@@ -995,9 +995,37 @@ class MeshCoreConnector extends ChangeNotifier {
       await _tcpFrameSubscription?.cancel();
       _tcpFrameSubscription = null;
       await _tcpManager.connect(host: host, port: port);
+      final isTcpConnectCancelled =
+          _activeTransport != MeshCoreTransportType.tcp ||
+          _state != MeshCoreConnectionState.connecting ||
+          !_tcpManager.isConnected;
+      if (isTcpConnectCancelled) {
+        _appDebugLogService?.warn(
+          'connectTcp aborted before handshake: state=$_state transport=$_activeTransport connected=${_tcpManager.isConnected}',
+          tag: 'TCP',
+        );
+        if (_tcpManager.isConnected) {
+          await _tcpManager.disconnect();
+        }
+        return;
+      }
       notifyListeners();
 
       await Future<void>.delayed(const Duration(milliseconds: 200));
+      final isTcpConnectCancelledAfterDelay =
+          _activeTransport != MeshCoreTransportType.tcp ||
+          _state != MeshCoreConnectionState.connecting ||
+          !_tcpManager.isConnected;
+      if (isTcpConnectCancelledAfterDelay) {
+        _appDebugLogService?.warn(
+          'connectTcp aborted after connect delay: state=$_state transport=$_activeTransport connected=${_tcpManager.isConnected}',
+          tag: 'TCP',
+        );
+        if (_tcpManager.isConnected) {
+          await _tcpManager.disconnect();
+        }
+        return;
+      }
       _tcpFrameSubscription = _tcpManager.frameStream.listen(
         _handleFrame,
         onError: (error, stackTrace) {
@@ -1031,6 +1059,16 @@ class MeshCoreConnector extends ChangeNotifier {
       await syncTime();
     } catch (error) {
       _appDebugLogService?.error('TCP connection error: $error', tag: 'TCP');
+      final tcpConnectNoLongerActive =
+          _activeTransport != MeshCoreTransportType.tcp ||
+          _state != MeshCoreConnectionState.connecting;
+      if (tcpConnectNoLongerActive) {
+        _appDebugLogService?.info(
+          'Ignoring late TCP connect error after cancellation/switch: state=$_state transport=$_activeTransport',
+          tag: 'TCP',
+        );
+        return;
+      }
       await disconnect(manual: false);
       rethrow;
     }

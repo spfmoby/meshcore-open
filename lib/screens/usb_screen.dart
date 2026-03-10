@@ -108,10 +108,7 @@ class _UsbScreenState extends State<UsbScreen> {
       bottomNavigationBar: Consumer<MeshCoreConnector>(
         builder: (context, connector, child) {
           final isLoading = _isLoadingPorts;
-          final showBle =
-              PlatformInfo.isWeb ||
-              PlatformInfo.isAndroid ||
-              PlatformInfo.isIOS;
+          final showBle = true;
           final showTcp = !PlatformInfo.isWeb;
 
           return SafeArea(
