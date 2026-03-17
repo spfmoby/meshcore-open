@@ -836,13 +836,16 @@ List<_PathHop> _buildPathHops(
       }
     }
 
-    previousPosition = _resolvePosition(contact);
+    final resolvedPosition = _resolvePosition(contact);
+    if (resolvedPosition != null) {
+      previousPosition = resolvedPosition;
+    }
     hops.add(
       _PathHop(
         index: i + 1,
         prefix: pathBytes[i],
         contact: contact,
-        position: _resolvePosition(contact),
+        position: resolvedPosition,
         l10n: l10n,
       ),
     );
