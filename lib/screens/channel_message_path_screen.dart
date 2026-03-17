@@ -302,10 +302,12 @@ class _ChannelMessagePathMapScreenState
     extends State<ChannelMessagePathMapScreen> {
   static const double _labelZoomThreshold = 8.5;
 
+  final MapController _mapController = MapController();
   Uint8List? _selectedPath;
   double _pathDistance = 0.0;
   bool _showNodeLabels = true;
   bool _didReceivePositionUpdate = false;
+  int? _focusedHopIndex;
 
   @override
   void initState() {
@@ -334,6 +336,22 @@ class _ChannelMessagePathMapScreenState
     }
 
     return totalDistance;
+  }
+
+  void _focusHop(_PathHop hop) {
+    if (!hop.hasLocation) return;
+    final targetZoom = _didReceivePositionUpdate
+        ? max(_mapController.camera.zoom, 14.0)
+        : 14.0;
+    _mapController.move(hop.position!, targetZoom);
+  }
+
+  void _onHopTapped(_PathHop hop) {
+    _focusHop(hop);
+    if (!mounted) return;
+    setState(() {
+      _focusedHopIndex = hop.index;
+    });
   }
 
   @override
@@ -419,6 +437,7 @@ class _ChannelMessagePathMapScreenState
               children: [
                 FlutterMap(
                   key: mapKey,
+                  mapController: _mapController,
                   options: MapOptions(
                     initialCenter: initialCenter,
                     initialZoom: initialZoom,
@@ -470,6 +489,7 @@ class _ChannelMessagePathMapScreenState
                   ) {
                     setState(() {
                       _selectedPath = observedPaths[index].pathBytes;
+                      _focusedHopIndex = null;
                     });
                   }),
                 if (points.isEmpty)
@@ -725,8 +745,17 @@ class _ChannelMessagePathMapScreenState
                         separatorBuilder: (_, _) => const Divider(height: 1),
                         itemBuilder: (context, index) {
                           final hop = hops[index];
+                          final isFocused = _focusedHopIndex == hop.index;
                           return ListTile(
                             dense: true,
+                            enabled: hop.hasLocation,
+                            selected: isFocused,
+                            selectedTileColor: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.12),
+                            onTap: hop.hasLocation
+                                ? () => _onHopTapped(hop)
+                                : null,
                             leading: CircleAvatar(
                               radius: 14,
                               child: Text(
