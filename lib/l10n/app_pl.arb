@@ -257,7 +257,7 @@
   "contacts_title": "Kontakty",
   "contacts_noContacts": "Brak jeszcze kontaktów.",
   "contacts_contactsWillAppear": "Kontakty będą wyświetlane, gdy urządzenia nadają rozgłoszenia.",
-  "contacts_searchContacts": "Wyszukaj {number}{str} kontakty...",
+  "contacts_searchContacts": "Wyszukaj {number}{str} {number, plural, one{kontakt} few{kontakty} many{kontaktów} other{kontaktu}}...",
   "@contacts_searchContacts": {
     "placeholders": {
       "number": {

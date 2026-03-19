@@ -876,7 +876,15 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String contacts_searchContacts(int number, String str) {
-    return 'Wyszukaj $number$str kontakty...';
+    String _temp0 = intl.Intl.pluralLogic(
+      number,
+      locale: localeName,
+      other: 'kontaktu',
+      many: 'kontaktów',
+      few: 'kontakty',
+      one: 'kontakt',
+    );
+    return 'Wyszukaj $number$str $_temp0...';
   }
 
   @override
