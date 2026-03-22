@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/widgets.dart';
+
 // Buffer Reader - sequential binary data reader with pointer tracking
 class BufferReader {
   int _pointer = 0;
@@ -37,16 +39,6 @@ class BufferReader {
 
   Uint8List readRemainingBytes() => readBytes(remaining);
 
-  String readString() {
-    _lastPointer = _pointer;
-    final value = readRemainingBytes();
-    try {
-      return utf8.decode(Uint8List.fromList(value), allowMalformed: true);
-    } catch (e) {
-      return String.fromCharCodes(value); // Latin-1 fallback
-    }
-  }
-
   String readCStringGreedy(int maxLength) {
     _lastPointer = _pointer;
     final value = <int>[];
@@ -62,11 +54,12 @@ class BufferReader {
     }
   }
 
-  String readCString(int maxLength) {
+  String readCString({int maxLength = -1}) {
     final backupPointer = _pointer;
     final value = <int>[];
     int counter = 0;
-    while (counter < maxLength) {
+    final maxLen = maxLength >= 0 ? maxLength : remaining;
+    while (counter < maxLen) {
       final byte = readByte();
       if (byte == 0) break;
       value.add(byte);
@@ -409,48 +402,40 @@ ParsedContactText? parseContactMessageText(Uint8List frame) {
       // Signed messages have a 4-byte signature after the timestamp, before the text
       message.skipBytes(4);
     }
-    final text = message.readString();
+    final text = message.readCString();
     if (text.isEmpty) return null;
 
     return ParsedContactText(senderPrefix: senderPrefix, text: text);
   } catch (e) {
+    debugPrint('Error parsing contact message text: $e');
     return null;
   }
 }
 
-// // Helper to read uint32 little-endian
-// int readUint32LE(Uint8List data, int offset) {
-//   return data[offset] |
-//       (data[offset + 1] << 8) |
-//       (data[offset + 2] << 16) |
-//       (data[offset + 3] << 24);
-// }
+// Helper to read uint32 little-endian
+int readUint32LE(Uint8List data, int offset) {
+  return data[offset] |
+      (data[offset + 1] << 8) |
+      (data[offset + 2] << 16) |
+      (data[offset + 3] << 24);
+}
 
-// // Helper to read uint16 little-endian
-// int readUint16LE(Uint8List data, int offset) {
-//   return data[offset] | (data[offset + 1] << 8);
-// }
+// Helper to read uint16 little-endian
+int readUint16LE(Uint8List data, int offset) {
+  return data[offset] | (data[offset + 1] << 8);
+}
 
-// // Helper to read int32 little-endian
-// int readInt32LE(Uint8List data, int offset) {
-//   int val = readUint32LE(data, offset);
-//   if (val >= 0x80000000) val -= 0x100000000;
-//   return val;
-// }
+// Helper to read int32 little-endian
+int readInt32LE(Uint8List data, int offset) {
+  int val = readUint32LE(data, offset);
+  if (val >= 0x80000000) val -= 0x100000000;
+  return val;
+}
 
-// // Helper to read null-terminated UTF-8 string
-// String readCString(Uint8List data, int offset, int maxLen) {
-//   int end = offset;
-//   while (end < offset + maxLen && end < data.length && data[end] != 0) {
-//     end++;
-//   }
-//   try {
-//     return utf8.decode(data.sublist(offset, end), allowMalformed: true);
-//   } catch (e) {
-//     // Fallback to Latin-1 if UTF-8 decoding fails
-//     return String.fromCharCodes(data.sublist(offset, end));
-//   }
-// }
+// Helper to convert uint32 to hex string
+String ackHashToHex(int ackHash) {
+  return ackHash.toRadixString(16).padLeft(8, '0');
+}
 
 // Helper to convert public key to hex string
 String pubKeyToHex(Uint8List pubKey) {

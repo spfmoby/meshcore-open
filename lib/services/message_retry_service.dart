@@ -98,7 +98,7 @@ class MessageRetryService extends ChangeNotifier {
 
   /// Compute expected ACK hash using same algorithm as firmware:
   /// SHA256([timestamp(4)][attempt(1)][text][sender_pubkey(32)]) -> first 4 bytes
-  static Uint8List computeExpectedAckHash(
+  static int computeExpectedAckHash(
     int timestampSeconds,
     int attempt,
     String text,
@@ -126,7 +126,8 @@ class MessageRetryService extends ChangeNotifier {
 
     // Compute SHA256 and return first 4 bytes
     final hash = sha256.convert(buffer);
-    return Uint8List.fromList(hash.bytes.sublist(0, 4));
+    final bytes = Uint8List.fromList(hash.bytes.sublist(0, 4));
+    return (bytes[3] << 24) | (bytes[2] << 16) | (bytes[1] << 8) | bytes[0];
   }
 
   Future<void> sendMessageWithRetry({
@@ -324,9 +325,7 @@ class MessageRetryService extends ChangeNotifier {
         outboundText,
         selfPubKey,
       );
-      final expectedHashHex = expectedHash
-          .map((b) => b.toRadixString(16).padLeft(2, '0'))
-          .join();
+      final expectedHashHex = expectedHash.toRadixString(16).padLeft(8, '0');
       _expectedHashToMessageId[expectedHashHex] = messageId;
 
       final shortText = message.text.length > 20

@@ -245,19 +245,6 @@ class BleDebugLogService extends ChangeNotifier {
     }
   }
 
-  // Helper to read uint32 little-endian
-  int readUint32LE(Uint8List data, int offset) {
-    return data[offset] |
-        (data[offset + 1] << 8) |
-        (data[offset + 2] << 16) |
-        (data[offset + 3] << 24);
-  }
-
-  // // Helper to read uint16 little-endian
-  int readUint16LE(Uint8List data, int offset) {
-    return data[offset] | (data[offset + 1] << 8);
-  }
-
   String _frameDetail(int code, Uint8List frame) {
     switch (code) {
       case respCodeSent:

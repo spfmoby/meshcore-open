@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import '../connector/meshcore_protocol.dart';
 import '../helpers/reaction_helper.dart';
 import '../helpers/smaz.dart';
+import '../utils/app_logger.dart';
 
 enum ChannelMessageStatus { pending, sent, failed }
 
@@ -114,8 +115,8 @@ class ChannelMessage {
     // V3: [0]=code [1]=SNR [2]=rsv1 [3]=rsv2 [4]=channel_idx [5]=path_len [path... optional] [txt_type] [timestamp x4] [text...]
     // Non-V3: [0]=code [1]=channel_idx [2]=path_len [3]=txt_type [4-7]=timestamp [8+]=text
     if (frame.length < 8) return null;
-    final reader = BufferReader(frame);
     try {
+      final reader = BufferReader(frame);
       final code = reader.readByte();
       if (code != respCodeChannelMsgRecv && code != respCodeChannelMsgRecvV3) {
         return null;
@@ -133,11 +134,9 @@ class ChannelMessage {
         pathLen = reader.readByte();
         txtType = reader.readByte();
         final hasPath = (flags & 0x01) != 0;
-        if (hasPath) {
+        if (hasPath && pathLen > 0) {
           reader.rewind(); // Rewind to read path length again for pathBytes
           pathBytes = reader.readBytes(pathLen);
-          // Force text type to plain if path is present
-          txtType = txtTypePlain;
         } else {
           pathLen = 0;
         }
@@ -152,7 +151,7 @@ class ChannelMessage {
         return null;
       }
 
-      final text = reader.readString();
+      final text = reader.readCString();
 
       // Extract sender name and actual message from "name: msg" format
       String senderName = 'Unknown';
@@ -185,6 +184,7 @@ class ChannelMessage {
         channelIndex: channelIdx,
       );
     } catch (e) {
+      appLogger.error('Error parsing channel message frame: $e');
       // If parsing fails, return null to avoid crashes
       return null;
     }

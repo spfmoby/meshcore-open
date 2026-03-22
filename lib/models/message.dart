@@ -105,7 +105,7 @@ class Message {
       if ((flags >> 2) != txtTypePlain) {
         return null;
       }
-      final text = reader.readString();
+      final text = reader.readCString();
 
       return Message(
         senderKey: senderKey,

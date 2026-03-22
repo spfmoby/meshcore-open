@@ -2127,9 +2127,7 @@ class MeshCoreConnector extends ChangeNotifier {
       outboundText,
       selfKey,
     );
-    final ackHashHex = ackHash
-        .map((b) => b.toRadixString(16).padLeft(2, '0'))
-        .join();
+    final ackHashHex = ackHashToHex(ackHash);
     final messageBytes = utf8.encode(outboundText).length;
     _pendingRepeaterAcks[ackHashHex]?.timeout?.cancel();
     _pendingRepeaterAcks[ackHashHex] = _RepeaterAckContext(
@@ -2901,7 +2899,7 @@ class MeshCoreConnector extends ChangeNotifier {
       _currentSf = reader.readByte();
       _currentCr = reader.readByte();
 
-      _selfName = reader.readString();
+      _selfName = reader.readCString();
     } catch (e) {
       _appDebugLogService?.error(
         'Error parsing SELF_INFO frame: $e',
@@ -3554,7 +3552,7 @@ class MeshCoreConnector extends ChangeNotifier {
         reader.skipBytes(4); // Skip extra 4 bytes for signed/plain variants
       }
 
-      final msgText = reader.readString();
+      final msgText = reader.readCString();
 
       final flags = txtType;
       final shiftedType = flags >> 2;
@@ -3724,10 +3722,9 @@ class MeshCoreConnector extends ChangeNotifier {
       final packet = _parseRawPacket(raw);
       if (packet == null || packet.payloadType != _payloadTypeGroupText) return;
 
-      final payload = packet.payload;
-      if (payload.length <= _cipherMacSize) return;
-      final channelHash = payload[0];
-      final encrypted = Uint8List.fromList(payload.sublist(1));
+      final payload = BufferReader(packet.payload);
+      final channelHash = payload.readByte();
+      final encrypted = Uint8List.fromList(payload.readRemainingBytes());
 
       // Use cached channels as fallback if live channels not yet loaded
       final channelsToSearch = _channels.isNotEmpty
@@ -3741,15 +3738,14 @@ class MeshCoreConnector extends ChangeNotifier {
           final decryptedBytes = _decryptPayload(channel.psk, encrypted);
           if (decryptedBytes == null || decryptedBytes.length < 6) return;
           final decrypted = BufferReader(decryptedBytes);
-          // Skip header + SNR + reserved (2)
-          decrypted.skipBytes(4);
+
+          final timestampRaw = decrypted.readUInt32LE();
           final txtType = decrypted.readByte();
           if ((txtType >> 2) != 0) {
             return;
           }
 
-          final timestampRaw = decrypted.readUInt32LE();
-          final text = decrypted.readString();
+          final text = decrypted.readCString();
           final parsed = _splitSenderText(text);
           final decodedText =
               Smaz.tryDecodePrefixed(parsed.text) ?? parsed.text;
@@ -3811,13 +3807,13 @@ class MeshCoreConnector extends ChangeNotifier {
 
     try {
       final reader = BufferReader(frame);
-      reader.skipBytes(2); // code + is_flood
+      reader.skipBytes(2); //Skip code and is_flood
       final ackHash = reader.readUInt32LE();
       final timeoutMs = reader.readUInt32LE();
 
       // Check if this is a CLI command ACK - if so, ignore it
       if (_lastSentWasCliCommand) {
-        final ackHashHex = ackHash.toRadixString(16).padLeft(8, '0');
+        final ackHashHex = ackHashToHex(ackHash);
         debugPrint('Ignoring CLI command ACK (sent): $ackHashHex');
         _lastSentWasCliCommand = false;
         return;
@@ -3949,7 +3945,7 @@ class MeshCoreConnector extends ChangeNotifier {
   }
 
   bool _handleRepeaterCommandSent(int ackHash, int timeoutMs) {
-    final ackHashHex = ackHash.toRadixString(16).padLeft(8, '0');
+    final ackHashHex = ackHashToHex(ackHash);
     final entry = _pendingRepeaterAcks[ackHashHex];
     if (entry == null) return false;
 
@@ -3968,7 +3964,7 @@ class MeshCoreConnector extends ChangeNotifier {
   }
 
   bool _handleRepeaterCommandAck(int ackHash, int tripTimeMs) {
-    final ackHashHex = ackHash.toRadixString(16).padLeft(8, '0');
+    final ackHashHex = ackHashToHex(ackHash);
     final entry = _pendingRepeaterAcks.remove(ackHashHex);
     if (entry == null) return false;
     entry.timeout?.cancel();
@@ -4319,36 +4315,34 @@ class MeshCoreConnector extends ChangeNotifier {
   }
 
   _RawPacket? _parseRawPacket(Uint8List raw) {
-    if (raw.length < 3) return null;
-    var index = 0;
-    final header = raw[index++];
-    final routeType = header & _phRouteMask;
-    final hasTransport =
-        routeType == _routeTransportFlood || routeType == _routeTransportDirect;
-    if (hasTransport) {
-      if (raw.length < index + 4) return null;
-      index += 4;
-    }
-    if (raw.length <= index) return null;
-    final pathLenRaw = raw[index++];
-    final pathByteLen = _decodePathByteLen(pathLenRaw);
-    if (raw.length < index + pathByteLen) return null;
-    final pathBytes = Uint8List.fromList(
-      raw.sublist(index, index + pathByteLen),
-    );
-    index += pathByteLen;
-    if (raw.length <= index) return null;
-    final payload = Uint8List.fromList(raw.sublist(index));
+    try {
+      final reader = BufferReader(raw);
+      final header = reader.readByte();
+      final routeType = header & _phRouteMask;
+      final hasTransport =
+          routeType == _routeTransportFlood ||
+          routeType == _routeTransportDirect;
+      if (hasTransport) {
+        reader.skipBytes(2); // Skip reserved bytes in transport header
+      }
+      final pathLenRaw = reader.readByte();
+      final pathByteLen = _decodePathByteLen(pathLenRaw);
+      final pathBytes = reader.readBytes(pathByteLen);
+      final payload = reader.readBytes(reader.remaining);
 
-    return _RawPacket(
-      header: header,
-      routeType: routeType,
-      payloadType: (header >> _phTypeShift) & _phTypeMask,
-      payloadVer: (header >> _phVerShift) & _phVerMask,
-      pathLenRaw: pathLenRaw,
-      pathBytes: pathBytes,
-      payload: payload,
-    );
+      return _RawPacket(
+        header: header,
+        routeType: routeType,
+        payloadType: (header >> _phTypeShift) & _phTypeMask,
+        payloadVer: (header >> _phVerShift) & _phVerMask,
+        pathLenRaw: pathLenRaw,
+        pathBytes: pathBytes,
+        payload: payload,
+      );
+    } catch (e) {
+      appLogger.warn('Error parsing raw packet: $e');
+      return null;
+    }
   }
 
   int _computeChannelHash(Uint8List psk) {
@@ -4767,7 +4761,7 @@ class MeshCoreConnector extends ChangeNotifier {
   void _handleCustomVars(Uint8List frame) {
     final buf = BufferReader(frame.sublist(1));
     try {
-      _currentCustomVars = _parseKeyValueString(buf.readString());
+      _currentCustomVars = _parseKeyValueString(buf.readCString());
     } catch (e) {
       appLogger.warn('Malformed custom vars frame: $e', tag: 'Connector');
     }
@@ -4924,7 +4918,7 @@ class MeshCoreConnector extends ChangeNotifier {
         longitude = packet.readInt32LE() / 1e6;
       }
       if (hasName && packet.remaining > 0) {
-        name = packet.readString();
+        name = packet.readCString();
       }
     } catch (e) {
       appLogger.warn('Malformed advert frame: $e', tag: 'Connector');
@@ -4986,7 +4980,7 @@ class MeshCoreConnector extends ChangeNotifier {
         longitude = advert.readInt32LE() / 1e6;
       }
       if (hasName && advert.remaining > 0) {
-        name = advert.readString();
+        name = advert.readCString();
       }
     } catch (e) {
       appLogger.warn('Malformed advert frame: $e', tag: 'Connector');

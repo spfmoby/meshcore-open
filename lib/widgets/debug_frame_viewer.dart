@@ -10,14 +10,6 @@ class DebugFrameViewer {
     Uint8List frame,
     String title,
   ) {
-    // Helper to read uint32 little-endian
-    int readUint32LE(Uint8List data, int offset) {
-      return data[offset] |
-          (data[offset + 1] << 8) |
-          (data[offset + 2] << 16) |
-          (data[offset + 3] << 24);
-    }
-
     final hexString = frame
         .map((b) => b.toRadixString(16).padLeft(2, '0'))
         .join(' ');

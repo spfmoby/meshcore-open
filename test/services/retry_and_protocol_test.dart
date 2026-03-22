@@ -169,16 +169,6 @@ void main() {
       expect(first, equals(second));
     });
 
-    test('hash is exactly 4 bytes long', () {
-      final hash = MessageRetryService.computeExpectedAckHash(
-        fixedTs,
-        0,
-        fixedText,
-        fixedKey,
-      );
-      expect(hash.length, equals(4));
-    });
-
     test('hash matches manual SHA-256 computation', () {
       for (int attempt = 0; attempt < 4; attempt++) {
         final actual = MessageRetryService.computeExpectedAckHash(
@@ -509,7 +499,7 @@ void main() {
           fixedText,
           fixedKey,
         );
-        final hex = hash.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+        final hex = hash.toRadixString(16).padLeft(8, '0');
         expect(
           hashes.containsKey(hex),
           isFalse,
