@@ -18,6 +18,7 @@ class Contact {
   final DateTime lastSeen;
   final DateTime lastMessageAt;
   final bool isActive;
+  final bool wasPulled;
   final Uint8List? rawPacket;
 
   Contact({
@@ -34,6 +35,7 @@ class Contact {
     required this.lastSeen,
     DateTime? lastMessageAt,
     this.isActive = true,
+    this.wasPulled = false,
     this.rawPacket,
   }) : lastMessageAt = lastMessageAt ?? lastSeen;
 
@@ -117,15 +119,14 @@ class Contact {
     );
   }
 
-  String get pathIdList {
+  /// Formats path bytes into comma-separated hex groups of [hashByteWidth] bytes.
+  String pathFormattedIdList(int hashByteWidth) {
     final pathBytes = pathBytesForDisplay;
     if (pathBytes.isEmpty) return '';
+    final w = hashByteWidth.clamp(1, 8);
     final parts = <String>[];
-    final groupSize = pathHashSize;
-    for (int i = 0; i < pathBytes.length; i += groupSize) {
-      final end = (i + groupSize) <= pathBytes.length
-          ? (i + groupSize)
-          : pathBytes.length;
+    for (int i = 0; i < pathBytes.length; i += w) {
+      final end = (i + w) <= pathBytes.length ? (i + w) : pathBytes.length;
       final chunk = pathBytes.sublist(i, end);
       parts.add(
         chunk
@@ -135,6 +136,9 @@ class Contact {
     }
     return parts.join(',');
   }
+
+  /// Default grouping uses legacy single-byte hop hash width.
+  String get pathIdList => pathFormattedIdList(pathHashSize);
 
   String get shortPubKeyHex {
     return "<${publicKeyHex.substring(0, 8)}...${publicKeyHex.substring(publicKeyHex.length - 8)}>";
@@ -181,12 +185,13 @@ class Contact {
       final lastMod = reader.readUInt32LE();
 
       double? lat, lon;
-      final latRaw = reader.readInt32LE();
-      final lonRaw = reader.readInt32LE();
-
-      if (latRaw != 0 || lonRaw != 0) {
-        lat = latRaw / 1e6;
-        lon = lonRaw / 1e6;
+      if (reader.remaining >= 8) {
+        final latRaw = reader.readInt32LE();
+        final lonRaw = reader.readInt32LE();
+        if (latRaw != 0 || lonRaw != 0) {
+          lat = latRaw / 1e6;
+          lon = lonRaw / 1e6;
+        }
       }
 
       return Contact(
@@ -214,4 +219,7 @@ class Contact {
 
   @override
   int get hashCode => publicKeyHex.hashCode;
+  bool get teleBaseEnabled => (flags & contactFlagTeleBase) != 0;
+  bool get teleLocEnabled => (flags & contactFlagTeleLoc) != 0;
+  bool get teleEnvEnabled => (flags & contactFlagTeleEnv) != 0;
 }

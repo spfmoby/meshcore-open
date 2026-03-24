@@ -1900,6 +1900,35 @@
       }
     }
   },
+  "settings_privacy": "Inställningar för sekretess",
+  "settings_allowAll": "Tillåt alla",
+  "settings_privacySubtitle": "Kontrollera vilken information som delas.",
+  "settings_telemetryEnvironmentMode": "Telemetri miljöläge",
+  "settings_telemetryBaseMode": "Telemetribasläge",
+  "settings_telemetryLocationMode": "Telemetritillstånd för plats",
+  "settings_advertLocation": "Annonsplacering",
+  "contact_info": "Kontaktinformation",
+  "contact_settings": "Kontaktinställningar",
+  "contact_telemetry": "Telemetri",
+  "settings_denyAll": "Neka alla",
+  "settings_allowByContact": "Tillåt via kontaktflaggor",
+  "settings_privacySettingsDescription": "Välj vilken information din enhet delar med andra.",
+  "contact_lastSeen": "Senast sedd",
+  "contact_clearChat": "Rensa Chatt",
+  "contact_teleEnv": "Telemetri Miljö",
+  "settings_advertLocationSubtitle": "Inkludera plats i annonsen",
+  "contact_teleEnvSubtitle": "Tillåt delning av miljösensordata",
+  "contact_teleBase": "Telemetribas",
+  "contact_teleBaseSubtitle": "Tillåt delning av batterinivå och grundläggande telemetri",
+  "contact_teleLoc": "Telemetridata plats",
+  "contact_teleLocSubtitle": "Tillåt delning av platsdata",
+  "@settings_multiAck": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "appSettings_initialRouteWeightSubtitle": "Initial vikt för nyligen upptäckta vägar",
   "appSettings_maxRouteWeight": "Maximalt tillåtet vikt för rutten",
   "appSettings_maxRouteWeightSubtitle": "Maximal vikt som en leveransväg kan ackumulera från framgångsrika leveranser.",
@@ -1914,6 +1943,27 @@
   "@scanner_linuxPairingPinPrompt": {
     "placeholders": {
       "deviceName": {
+  "settings_telemetryModeUpdated": "Telemetri-läge uppdaterat",
+  "settings_multiAck": "Multi-ACKs: {value}",
+  "map_showOverlaps": "Repeater-nyckelöverlappningar",
+  "map_runTraceWithReturnPath": "Gå tillbaka på samma väg",
+  "@radioStats_noiseFloor": {
+    "placeholders": {
+      "noiseDbm": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_lastRssi": {
+    "placeholders": {
+      "rssiDbm": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_lastSnr": {
+    "placeholders": {
+      "snr": {
         "type": "String"
       }
     }
@@ -1922,4 +1972,46 @@
   "scanner_linuxPairingHidePin": "Dölj PIN-kod",
   "scanner_linuxPairingShowPin": "Visa PIN-kod",
   "scanner_linuxPairingPinTitle": "PIN för Bluetooth-parning"
+  "@radioStats_txAir": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_rxAir": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_stripNoise": {
+    "placeholders": {
+      "noiseDbm": {
+        "type": "int"
+      }
+    }
+  },
+  "appSettings_jumpToOldestUnreadSubtitle": "När du öppnar en chatt med oinlästa meddelanden, scrolla till det första oinlästa meddelandet istället för det senaste.",
+  "chat_sendCooldown": "Vänligen vänta en stund innan du skickar igen.",
+  "appSettings_jumpToOldestUnread": "Gå direkt till det äldsta, obesvarade meddelandet",
+  "appSettings_languageHu": "Ungerskt",
+  "appSettings_languageJa": "Japanska",
+  "appSettings_languageKo": "Koreanska",
+  "radioStats_tooltip": "Radio- och mesh-statistik",
+  "radioStats_screenTitle": "Radiostation",
+  "radioStats_notConnected": "Anslut till en enhet för att visa radiostatistik.",
+  "radioStats_firmwareTooOld": "Radio statistik kräver kompatibel firmware version 8 eller senare.",
+  "radioStats_waiting": "Väntar på data…",
+  "radioStats_noiseFloor": "Bakgrundsnivå: {noiseDbm} dBm",
+  "radioStats_lastRssi": "Senaste RSSI-värde: {rssiDbm} dBm",
+  "radioStats_lastSnr": "Senaste SNR: {snr} dB",
+  "radioStats_txAir": "TX-tid (total): {seconds} sekunder",
+  "radioStats_rxAir": "RX-tid (total): {seconds} s",
+  "radioStats_chartCaption": "Ljudnivå (dBm) baserat på de senaste mätningarna.",
+  "radioStats_stripNoise": "Bakgrundsnivå: {noiseDbm} dBm",
+  "radioStats_stripWaiting": "Hämtar radiostatistik…",
+  "radioStats_settingsTile": "Radiostation",
+  "radioStats_settingsSubtitle": "Bakgrundsnivå, RSSI, SNR och tillgänglig tid"
 }

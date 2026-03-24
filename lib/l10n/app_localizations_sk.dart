@@ -410,6 +410,49 @@ class AppLocalizationsSk extends AppLocalizations {
   String get settings_privacyModeDisabled => 'Ochranný režim je vypnutý';
 
   @override
+  String get settings_privacy => 'Nastavenia súkromia';
+
+  @override
+  String get settings_privacySubtitle => 'Ovládni, aké informácie sa zdieľajú.';
+
+  @override
+  String get settings_privacySettingsDescription =>
+      'Vyberte, ktoré informácie váš zariadenie zdieľa s ostatnými.';
+
+  @override
+  String get settings_denyAll => 'Zamietnuť všetko';
+
+  @override
+  String get settings_allowByContact => 'Povoliť podľa kontaktových vlajok';
+
+  @override
+  String get settings_allowAll => 'Povoliť všetko';
+
+  @override
+  String get settings_telemetryBaseMode => 'Základný režim telemetrie';
+
+  @override
+  String get settings_telemetryLocationMode => 'Režim umiestnenia telemetrie';
+
+  @override
+  String get settings_telemetryEnvironmentMode => 'Režim prostredia telemetrie';
+
+  @override
+  String get settings_advertLocation => 'Umiestnenie inzerátu';
+
+  @override
+  String get settings_advertLocationSubtitle => 'Zahrnúť polohu do inzerátu';
+
+  @override
+  String settings_multiAck(String value) {
+    return 'Viaceré ACK: $value';
+  }
+
+  @override
+  String get settings_telemetryModeUpdated =>
+      'Režim telemetrie bol aktualizovaný';
+
+  @override
   String get settings_actions => 'Možné akcie';
 
   @override
@@ -993,6 +1036,41 @@ class AppLocalizationsSk extends AppLocalizations {
   String contacts_lastSeenDaysAgo(int days) {
     return 'Posledné zobrazenie $days dní dozadu';
   }
+
+  @override
+  String get contact_info => 'Kontaktné informácie';
+
+  @override
+  String get contact_settings => 'Nastavenia kontaktov';
+
+  @override
+  String get contact_telemetry => 'Telemetria';
+
+  @override
+  String get contact_lastSeen => 'Naposledy videný';
+
+  @override
+  String get contact_clearChat => 'Vymazať chat';
+
+  @override
+  String get contact_teleBase => 'Báza telemetrie';
+
+  @override
+  String get contact_teleBaseSubtitle =>
+      'Povoliť zdieľanie úrovne batérie a základnej telemetrie';
+
+  @override
+  String get contact_teleLoc => 'Lokácia telemetrie';
+
+  @override
+  String get contact_teleLocSubtitle => 'Povoliť zdieľanie údajov o lokalite';
+
+  @override
+  String get contact_teleEnv => 'Prostredie telemetrie';
+
+  @override
+  String get contact_teleEnvSubtitle =>
+      'Povoliť zdieľanie údajov senzorov prostredia';
 
   @override
   String get channels_title => 'Kanály';
@@ -1612,6 +1690,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get map_otherNodes => 'Ostatné uzly';
 
   @override
+  String get map_showOverlaps => 'Prekrývanie opakovača kľúča';
+
+  @override
   String get map_keyPrefix => 'Päťciferné predpona';
 
   @override
@@ -1653,6 +1734,9 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get map_runTrace => 'Spustiť trasovaním cesty';
+
+  @override
+  String get map_runTraceWithReturnPath => 'Vráťte sa späť po tej istej ceste.';
 
   @override
   String get map_removeLast => 'Odstrániť posledný';
@@ -3394,4 +3478,84 @@ class AppLocalizationsSk extends AppLocalizations {
   @override
   String get discoveredContacts_deleteContactAllContent =>
       'Ste si istí, že chcete zmazať všetky objavené kontakty?';
+
+  @override
+  String get chat_sendCooldown => 'Prosím, počkajte chvíľu, než zašlete znova.';
+
+  @override
+  String get appSettings_jumpToOldestUnread => 'Presk oceň';
+
+  @override
+  String get appSettings_jumpToOldestUnreadSubtitle =>
+      'Pri otvorení chatu s neprečítanými správami, prejdite do prvého neprečítaného, namiesto poslednej.';
+
+  @override
+  String get appSettings_languageHu => 'Maďarský';
+
+  @override
+  String get appSettings_languageJa => 'Japonský';
+
+  @override
+  String get appSettings_languageKo => 'Kórejský';
+
+  @override
+  String get radioStats_tooltip => 'Statistiky rádiových a sieťových kanálov';
+
+  @override
+  String get radioStats_screenTitle => 'Štatistiky rádiových vysielaní';
+
+  @override
+  String get radioStats_notConnected =>
+      'Pripojte sa k zariadeniu, aby ste mohli sledovať štatistiky rádiového vysielania.';
+
+  @override
+  String get radioStats_firmwareTooOld =>
+      'Statistické údaje z rádia vyžadujú sprievodný softvér verzie v8 alebo novšej.';
+
+  @override
+  String get radioStats_waiting => 'Čakám na údaje…';
+
+  @override
+  String radioStats_noiseFloor(int noiseDbm) {
+    return 'Úroveň hluku: $noiseDbm dBm';
+  }
+
+  @override
+  String radioStats_lastRssi(int rssiDbm) {
+    return 'Posledný údaj RSSI: $rssiDbm dBm';
+  }
+
+  @override
+  String radioStats_lastSnr(String snr) {
+    return 'Posledná hodnota SNR: $snr dB';
+  }
+
+  @override
+  String radioStats_txAir(int seconds) {
+    return 'Čas vysielania na TX (celkový): $seconds s';
+  }
+
+  @override
+  String radioStats_rxAir(int seconds) {
+    return 'Čas RX (celkový): $seconds s';
+  }
+
+  @override
+  String get radioStats_chartCaption =>
+      'Úroveň šumu (dBm) pre posledné vzorky.';
+
+  @override
+  String radioStats_stripNoise(int noiseDbm) {
+    return 'Úroveň hluku: $noiseDbm dBm';
+  }
+
+  @override
+  String get radioStats_stripWaiting => 'Získavanie údajov o rádiu…';
+
+  @override
+  String get radioStats_settingsTile => 'Štatistiky rádiových vysielaní';
+
+  @override
+  String get radioStats_settingsSubtitle =>
+      'Úroveň hluku, RSSI, SNR a časové rozloženie';
 }

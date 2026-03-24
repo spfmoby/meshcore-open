@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:pointycastle/export.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_blue_plus_platform_interface/flutter_blue_plus_platform_
 
 import '../models/channel.dart';
 import '../models/channel_message.dart';
+import '../models/companion_radio_stats.dart';
 import '../models/contact.dart';
 import '../models/message.dart';
 import '../models/path_selection.dart';
@@ -145,6 +147,10 @@ class MeshCoreConnector extends ChangeNotifier {
   Timer? _selfInfoRetryTimer;
   Timer? _reconnectTimer;
   Timer? _batteryPollTimer;
+  Timer? _radioStatsPollTimer;
+  int _radioStatsPollRefCount = 0;
+  final ValueNotifier<CompanionRadioStats?> radioStatsNotifier =
+      ValueNotifier<CompanionRadioStats?>(null);
   int _reconnectAttempts = 0;
   bool _notifyListenersDirty = false;
   static const Duration _notifyListenersDebounce = Duration(milliseconds: 50);
@@ -162,6 +168,10 @@ class MeshCoreConnector extends ChangeNotifier {
   int? _currentCr;
   bool? _clientRepeat;
   int? _firmwareVerCode;
+  int _pathHashByteWidth = 1;
+  CompanionRadioStats? _latestRadioStats;
+  Stopwatch? _airtimeBumpStopwatch;
+  int _prevTotalAirSecs = 0;
   int? _batteryMillivolts;
   double? _selfLatitude;
   double? _selfLongitude;
@@ -175,9 +185,14 @@ class MeshCoreConnector extends ChangeNotifier {
   DateTime _lastRxTime = DateTime.now();
   DateTime _lastRadioRxTime = DateTime.fromMillisecondsSinceEpoch(0);
   DateTime _lastContactMsgRxTime = DateTime.fromMillisecondsSinceEpoch(0);
+  DateTime _lastChannelMsgRxTime = DateTime.fromMillisecondsSinceEpoch(0);
   static const int _radioQuietMs = 3000;
   static const int _radioQuietMaxWaitMs = 3000;
-  static const int _contactMsgBackoffMs = 5000;
+
+  /// When companion radio stats are unavailable, keep the legacy fixed backoff.
+  static const int _contactMsgBackoffFallbackMs = 5000;
+  static const int _contactMsgBackoffMinMs = 500;
+  static const int _contactMsgBackoffMaxMs = 15000;
   bool _batteryRequested = false;
   bool _awaitingSelfInfo = false;
   bool _hasReceivedDeviceInfo = false;
@@ -259,6 +274,9 @@ class MeshCoreConnector extends ChangeNotifier {
   int? _activeChannelIndex;
   List<int> _channelOrder = [];
 
+  int _storageUsedKb = -1;
+  int _storageTotalKb = -1;
+
   // Getters
   MeshCoreConnectionState get state => _state;
   BluetoothDevice? get device => _device;
@@ -324,6 +342,19 @@ class MeshCoreConnector extends ChangeNotifier {
   List<DirectRepeater> get directRepeaters => _directRepeaters;
   int? get currentTxPower => _currentTxPower;
   int? get maxTxPower => _maxTxPower;
+
+  int get pathHashByteWidth => _pathHashByteWidth;
+
+  CompanionRadioStats? get latestRadioStats => _latestRadioStats;
+
+  bool get supportsCompanionRadioStats => (_firmwareVerCode ?? 0) >= 8;
+
+  bool get radioStatsAirActivityPulse {
+    final sw = _airtimeBumpStopwatch;
+    if (sw == null || !sw.isRunning) return false;
+    return sw.elapsed < const Duration(seconds: 2);
+  }
+
   int? get currentFreqHz => _currentFreqHz;
   int? get currentBwHz => _currentBwHz;
   int? get currentSf => _currentSf;
@@ -333,10 +364,17 @@ class MeshCoreConnector extends ChangeNotifier {
   bool? get autoAddRoomServers => _autoAddRoomServers;
   bool? get autoAddSensors => _autoAddSensors;
   bool? get autoAddOverwriteOldest => _overwriteOldest;
+  int get telemetryModeBase => _telemetryModeBase;
+  int get telemetryModeLoc => _telemetryModeLoc;
+  int get telemetryModeEnv => _telemetryModeEnv;
+  int get advertLocationPolicy => _advertLocPolicy;
+  int get multiAcks => _multiAcks;
   bool? get clientRepeat => _clientRepeat;
   int? get firmwareVerCode => _firmwareVerCode;
   Map<String, String>? get currentCustomVars => _currentCustomVars;
   int? get batteryMillivolts => _batteryMillivolts;
+  int? get storageUsedKb => _storageUsedKb;
+  int? get storageTotalKb => _storageTotalKb;
   int get maxContacts => _maxContacts;
   int get maxChannels => _maxChannels;
   Set<String> get knownContactKeys => Set.unmodifiable(_knownContactKeys);
@@ -773,15 +811,70 @@ class MeshCoreConnector extends ChangeNotifier {
     }
   }
 
-  Future<void> _waitForRadioQuiet() async {
-    // Wait for backoff after receiving a contact message (avoid collision
-    // with their transmission still propagating through repeaters)
-    final msSinceContactMsg = DateTime.now()
-        .difference(_lastContactMsgRxTime)
-        .inMilliseconds;
-    if (msSinceContactMsg < _contactMsgBackoffMs) {
-      final waitMs = _contactMsgBackoffMs - msSinceContactMsg;
-      debugPrint('Contact message backoff: waiting ${waitMs}ms');
+  /// After an incoming DM or channel message, wait before TX so we do not
+  /// collide with mesh propagation. With companion stats, scale wait by RF
+  /// conditions (up to [_contactMsgBackoffMaxMs]); otherwise use
+  /// [_contactMsgBackoffFallbackMs].
+  int _contactMessageBackoffTargetMs() {
+    if (!supportsCompanionRadioStats || _latestRadioStats == null) {
+      return _contactMsgBackoffFallbackMs;
+    }
+    final stats = _latestRadioStats!;
+    final nf = stats.noiseFloorDbm.toDouble();
+    // Quieter (more negative) → lower score; noisier → higher.
+    const noiseQuietDbm = -118.0;
+    const noiseNoisyDbm = -88.0;
+    final noiseT = ((nf - noiseQuietDbm) / (noiseNoisyDbm - noiseQuietDbm))
+        .clamp(0.0, 1.0);
+
+    final snr = stats.lastSnrDb;
+    const snrGood = 12.0;
+    const snrBad = -2.0;
+    final snrT = (1.0 - ((snr - snrBad) / (snrGood - snrBad))).clamp(0.0, 1.0);
+
+    final airBusy = _recentAirtimeBusyFraction();
+    final severity = (math.max(noiseT, snrT) * 0.82 + airBusy * 0.18).clamp(
+      0.0,
+      1.0,
+    );
+
+    return (_contactMsgBackoffMinMs +
+            severity * (_contactMsgBackoffMaxMs - _contactMsgBackoffMinMs))
+        .round();
+  }
+
+  /// 1.0 shortly after TX/RX airtime counters increase, decaying to 0 over ~8s.
+  double _recentAirtimeBusyFraction() {
+    final sw = _airtimeBumpStopwatch;
+    if (sw == null || !sw.isRunning) return 0;
+    final ms = sw.elapsedMilliseconds;
+    const windowMs = 8000;
+    if (ms >= windowMs) return 0;
+    return 1.0 - (ms / windowMs);
+  }
+
+  /// Start of the post-inbound cool-down: the later of BLE message RX time and
+  /// companion airtime bump ([_airtimeBumpStopwatch], same as the activity dot).
+  DateTime _postTxBackoffAnchor(DateTime lastInboundRxTime) {
+    if (!supportsCompanionRadioStats) return lastInboundRxTime;
+    final sw = _airtimeBumpStopwatch;
+    if (sw == null || !sw.isRunning) return lastInboundRxTime;
+    final bumpAt = DateTime.now().subtract(sw.elapsed);
+    return bumpAt.isAfter(lastInboundRxTime) ? bumpAt : lastInboundRxTime;
+  }
+
+  Future<void> _waitForRadioQuiet({required DateTime lastInboundRxTime}) async {
+    // Wait for backoff after inbound traffic / RF airtime (avoid collision with
+    // mesh propagation). Elapsed time uses the dot's airtime bump when newer.
+    final backoffTargetMs = _contactMessageBackoffTargetMs();
+    final anchor = _postTxBackoffAnchor(lastInboundRxTime);
+    final msSinceAnchor = DateTime.now().difference(anchor).inMilliseconds;
+    if (msSinceAnchor < backoffTargetMs) {
+      final waitMs = backoffTargetMs - msSinceAnchor;
+      debugPrint(
+        'Post-inbound backoff: waiting ${waitMs}ms '
+        '(target=${backoffTargetMs}ms, anchorAge=${msSinceAnchor}ms)',
+      );
       await Future<void>.delayed(Duration(milliseconds: waitMs));
     }
 
@@ -815,7 +908,7 @@ class MeshCoreConnector extends ChangeNotifier {
   ) async {
     if (!isConnected || text.isEmpty) return;
     try {
-      await _waitForRadioQuiet();
+      await _waitForRadioQuiet(lastInboundRxTime: _lastContactMsgRxTime);
       final outboundText = prepareContactOutboundText(contact, text);
       await sendFrame(
         buildSendTextMsgFrame(
@@ -1154,6 +1247,7 @@ class MeshCoreConnector extends ChangeNotifier {
       );
       await _requestDeviceInfo();
       _startBatteryPolling();
+      if (_radioStatsPollRefCount > 0) _startRadioStatsPolling();
       var gotSelfInfo = await _waitForSelfInfo(
         timeout: const Duration(seconds: 3),
       );
@@ -1259,6 +1353,7 @@ class MeshCoreConnector extends ChangeNotifier {
       _pendingInitialChannelSync = true;
       await _requestDeviceInfo();
       _startBatteryPolling();
+      if (_radioStatsPollRefCount > 0) _startRadioStatsPolling();
 
       var gotSelfInfo = await _waitForSelfInfo(
         timeout: const Duration(seconds: 3),
@@ -1893,6 +1988,7 @@ class MeshCoreConnector extends ChangeNotifier {
 
     await _requestDeviceInfo();
     _startBatteryPolling();
+    if (_radioStatsPollRefCount > 0) _startRadioStatsPolling();
 
     final gotSelfInfo = await _waitForSelfInfo(
       timeout: const Duration(seconds: 3),
@@ -1920,6 +2016,7 @@ class MeshCoreConnector extends ChangeNotifier {
     _pendingInitialContactsSync = false;
     _bleInitialSyncStarted = false;
     _pendingDeferredChannelSyncAfterContacts = false;
+    _pathHashByteWidth = 1;
   }
 
   bool get _shouldAutoReconnect =>
@@ -1999,6 +2096,7 @@ class MeshCoreConnector extends ChangeNotifier {
     }
     _setState(MeshCoreConnectionState.disconnecting);
     _stopBatteryPolling();
+    _stopRadioStatsPolling();
 
     await _usbFrameSubscription?.cancel();
     _usbFrameSubscription = null;
@@ -2142,6 +2240,49 @@ class MeshCoreConnector extends ChangeNotifier {
   void _stopBatteryPolling() {
     _batteryPollTimer?.cancel();
     _batteryPollTimer = null;
+  }
+
+  void _startRadioStatsPolling() {
+    _radioStatsPollTimer?.cancel();
+    _radioStatsPollTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!isConnected) {
+        _stopRadioStatsPolling();
+        return;
+      }
+      unawaited(requestRadioStats());
+    });
+  }
+
+  void _stopRadioStatsPolling() {
+    _radioStatsPollTimer?.cancel();
+    _radioStatsPollTimer = null;
+  }
+
+  void acquireRadioStatsPolling() {
+    _radioStatsPollRefCount++;
+    if (_radioStatsPollRefCount == 1 && isConnected) {
+      _startRadioStatsPolling();
+    }
+  }
+
+  void releaseRadioStatsPolling() {
+    _radioStatsPollRefCount = (_radioStatsPollRefCount - 1).clamp(0, 999);
+    if (_radioStatsPollRefCount == 0) {
+      _stopRadioStatsPolling();
+    }
+  }
+
+  Future<void> requestRadioStats() async {
+    if (!isConnected) return;
+    if (!supportsCompanionRadioStats) return;
+    try {
+      await sendFrame(buildGetStatsFrame(statsTypeRadio));
+    } catch (_) {}
+  }
+
+  Future<void> setPathHashMode(int mode) async {
+    if (!isConnected) return;
+    await sendFrame(buildSetPathHashModeFrame(mode.clamp(0, 2)));
   }
 
   Future<void> refreshDeviceInfo() async {
@@ -2346,13 +2487,36 @@ class MeshCoreConnector extends ChangeNotifier {
     }
   }
 
-  Future<void> setContactFavorite(Contact contact, bool isFavorite) async {
+  Future<void> setContactFlags(
+    Contact contact, {
+    bool? isFavorite,
+    bool? teleBase,
+    bool? teleLoc,
+    bool? teleEnv,
+  }) async {
     if (!isConnected) return;
     final latestContact =
         await _fetchContactSnapshotFromDevice(contact.publicKey) ?? contact;
-    final updatedFlags = isFavorite
-        ? (latestContact.flags | contactFlagFavorite)
-        : (latestContact.flags & ~contactFlagFavorite);
+    int updatedFlags = isFavorite != null
+        ? (isFavorite
+              ? (latestContact.flags | contactFlagFavorite)
+              : (latestContact.flags & ~contactFlagFavorite))
+        : latestContact.flags;
+    updatedFlags = teleBase != null
+        ? (teleBase
+              ? (updatedFlags | contactFlagTeleBase)
+              : (updatedFlags & ~contactFlagTeleBase))
+        : updatedFlags;
+    updatedFlags = teleLoc != null
+        ? (teleLoc
+              ? (updatedFlags | contactFlagTeleLoc)
+              : (updatedFlags & ~contactFlagTeleLoc))
+        : updatedFlags;
+    updatedFlags = teleEnv != null
+        ? (teleEnv
+              ? (updatedFlags | contactFlagTeleEnv)
+              : (updatedFlags & ~contactFlagTeleEnv))
+        : updatedFlags;
 
     await sendFrame(
       buildUpdateContactPathFrame(
@@ -2518,9 +2682,7 @@ class MeshCoreConnector extends ChangeNotifier {
       outboundText,
       selfKey,
     );
-    final ackHashHex = ackHash
-        .map((b) => b.toRadixString(16).padLeft(2, '0'))
-        .join();
+    final ackHashHex = ackHashToHex(ackHash);
     final messageBytes = utf8.encode(outboundText).length;
     _pendingRepeaterAcks[ackHashHex]?.timeout?.cancel();
     _pendingRepeaterAcks[ackHashHex] = _RepeaterAckContext(
@@ -2612,6 +2774,7 @@ class MeshCoreConnector extends ChangeNotifier {
       // Send the reaction to the device (don't add as a visible message)
       final reactionQueueId = _nextReactionSendQueueId();
       _pendingChannelSentQueue.add(reactionQueueId);
+      await _waitForRadioQuiet(lastInboundRxTime: _lastChannelMsgRxTime);
       await sendFrame(
         buildSendChannelTextMsgFrame(channel.index, text),
         channelSendQueueId: reactionQueueId,
@@ -2636,6 +2799,7 @@ class MeshCoreConnector extends ChangeNotifier {
         (isChannelSmazEnabled(channel.index) && !isStructuredPayload)
         ? Smaz.encodeIfSmaller(text)
         : text;
+    await _waitForRadioQuiet(lastInboundRxTime: _lastChannelMsgRxTime);
     await sendFrame(
       buildSendChannelTextMsgFrame(channel.index, outboundText),
       channelSendQueueId: message.messageId,
@@ -2892,6 +3056,31 @@ class MeshCoreConnector extends ChangeNotifier {
     await sendCliCommand('set privacy ${enabled ? 'on' : 'off'}');
   }
 
+  Future<void> setTelemetryModeBase(
+    int base,
+    int location,
+    int env,
+    int advert,
+    int multiAcks,
+  ) async {
+    if (!isConnected) return;
+    _telemetryModeBase = base.clamp(teleModeDeny, teleModeAllowAll).toInt();
+    _telemetryModeLoc = location.clamp(teleModeDeny, teleModeAllowAll).toInt();
+    _telemetryModeEnv = env.clamp(teleModeDeny, teleModeAllowAll).toInt();
+    _advertLocPolicy = advert.clamp(0, 1).toInt();
+    _multiAcks = multiAcks.clamp(0, 2).toInt();
+    await sendFrame(
+      buildSetOtherParamsFrame(
+        (_telemetryModeEnv << 4) |
+            (_telemetryModeLoc << 2) |
+            _telemetryModeBase,
+        _advertLocPolicy,
+        _multiAcks,
+      ),
+    );
+    notifyListeners();
+  }
+
   Future<void> getChannels({int? maxChannels, bool force = false}) async {
     if (!isConnected) return;
     if (_isSyncingChannels) {
@@ -3074,7 +3263,7 @@ class MeshCoreConnector extends ChangeNotifier {
     _bleDebugLogService?.logFrame(frame, outgoing: false);
 
     final code = frame[0];
-    debugPrint('RX frame: code=$code len=${frame.length}');
+    // debugPrint('RX frame: code=$code len=${frame.length}');
 
     switch (code) {
       case respCodeOk:
@@ -3176,6 +3365,9 @@ class MeshCoreConnector extends ChangeNotifier {
       case respCodeBattAndStorage:
         _handleBatteryAndStorage(frame);
         break;
+      case respCodeStats:
+        _handleStatsFrame(frame);
+        break;
       case respCodeCustomVars:
         _handleCustomVars(frame);
         break;
@@ -3248,8 +3440,8 @@ class MeshCoreConnector extends ChangeNotifier {
     final reader = BufferReader(frame);
     try {
       reader.skipBytes(2);
-      _currentTxPower = reader.readByte();
-      _maxTxPower = reader.readByte();
+      _currentTxPower = reader.readInt8();
+      _maxTxPower = reader.readInt8();
       _selfPublicKey = reader.readBytes(pubKeySize);
       _selfLatitude = reader.readInt32LE() / 1000000.0;
       _selfLongitude = reader.readInt32LE() / 1000000.0;
@@ -3267,7 +3459,7 @@ class MeshCoreConnector extends ChangeNotifier {
       _currentSf = reader.readByte();
       _currentCr = reader.readByte();
 
-      _selfName = reader.readString();
+      _selfName = reader.readCString();
     } catch (e) {
       _appDebugLogService?.error(
         'Error parsing SELF_INFO frame: $e',
@@ -3343,6 +3535,13 @@ class MeshCoreConnector extends ChangeNotifier {
     if (frame.length >= 81) {
       _clientRepeat = frame[80] != 0;
     }
+    // Path hash mode v10+ (byte 81): width = mode + 1 byte(s) per hop
+    if (frame.length >= 82) {
+      final mode = (frame[81] & 0xFF).clamp(0, 2);
+      _pathHashByteWidth = mode + 1;
+    } else {
+      _pathHashByteWidth = 1;
+    }
 
     // Firmware reports MAX_CONTACTS / 2 for v3+ device info.
     final reportedContacts = frame[2];
@@ -3402,20 +3601,42 @@ class MeshCoreConnector extends ChangeNotifier {
     unawaited(_requestNextQueuedMessage());
   }
 
+  void _handleStatsFrame(Uint8List frame) {
+    final stats = CompanionRadioStats.tryParse(frame);
+    if (stats == null) return;
+    final total = stats.txAirSecs + stats.rxAirSecs;
+    if (total > _prevTotalAirSecs) {
+      (_airtimeBumpStopwatch ??= Stopwatch()).reset();
+      _airtimeBumpStopwatch!.start();
+    }
+    _prevTotalAirSecs = total;
+    _latestRadioStats = stats;
+    radioStatsNotifier.value = stats;
+  }
+
   void _handleBatteryAndStorage(Uint8List frame) {
     // Frame format from C++:
     // [0] = RESP_CODE_BATT_AND_STORAGE
     // [1-2] = battery_mv (uint16 LE)
     // [3-6] = storage_used_kb (uint32 LE)
     // [7-10] = storage_total_kb (uint32 LE)
-    if (frame.length >= 3) {
-      _batteryMillivolts = readUint16LE(frame, 1);
+    try {
+      final reader = BufferReader(frame);
+      reader.skipBytes(1);
+      _batteryMillivolts = reader.readUInt16LE();
+      _storageUsedKb = reader.readUInt32LE();
+      _storageTotalKb = reader.readUInt32LE();
       final volts = (_batteryMillivolts! / 1000.0).toStringAsFixed(2);
       _appDebugLogService?.info(
         'Pulled battery: $volts V ($_batteryMillivolts mV)',
         tag: 'Battery',
       );
       notifyListeners();
+    } catch (e) {
+      _appDebugLogService?.error(
+        'Error parsing battery and storage frame: $e',
+        tag: 'Connector',
+      );
     }
   }
 
@@ -3761,9 +3982,10 @@ class MeshCoreConnector extends ChangeNotifier {
   }
 
   bool _pathMatchesContact(Uint8List pathBytes, Uint8List publicKey) {
-    if (pathBytes.isEmpty || publicKey.length < pathHashSize) return false;
-    for (int i = 0; i + pathHashSize <= pathBytes.length; i += pathHashSize) {
-      final prefix = pathBytes.sublist(i, i + pathHashSize);
+    final w = _pathHashByteWidth;
+    if (pathBytes.isEmpty || publicKey.length < w) return false;
+    for (int i = 0; i + w <= pathBytes.length; i += w) {
+      final prefix = pathBytes.sublist(i, i + w);
       if (_matchesPrefix(publicKey, prefix)) {
         return true;
       }
@@ -3911,7 +4133,7 @@ class MeshCoreConnector extends ChangeNotifier {
         reader.skipBytes(4); // Skip extra 4 bytes for signed/plain variants
       }
 
-      final msgText = reader.readString();
+      final msgText = reader.readCString();
 
       final flags = txtType;
       final shiftedType = flags >> 2;
@@ -4048,6 +4270,7 @@ class MeshCoreConnector extends ChangeNotifier {
       if (_shouldDropSelfChannelMessage(parsed.senderName, parsed.pathBytes)) {
         return;
       }
+      _lastChannelMsgRxTime = DateTime.now();
       final contentHash = _computeContentHash(
         parsed.channelIndex!,
         parsed.timestamp.millisecondsSinceEpoch ~/ 1000,
@@ -4073,68 +4296,87 @@ class MeshCoreConnector extends ChangeNotifier {
 
   void _handleLogRxData(Uint8List frame) {
     if (frame.length < 4) return;
-    final raw = Uint8List.fromList(frame.sublist(3));
-    final packet = _parseRawPacket(raw);
-    if (packet == null || packet.payloadType != _payloadTypeGroupText) return;
+    try {
+      final reader = BufferReader(frame);
+      reader.skipBytes(3); // Skip header
 
-    final payload = packet.payload;
-    if (payload.length <= _cipherMacSize) return;
-    final channelHash = payload[0];
-    final encrypted = Uint8List.fromList(payload.sublist(1));
+      final raw = reader.readRemainingBytes();
+      final packet = _parseRawPacket(raw);
+      if (packet == null || packet.payloadType != _payloadTypeGroupText) return;
 
-    // Use cached channels as fallback if live channels not yet loaded
-    final channelsToSearch = _channels.isNotEmpty ? _channels : _cachedChannels;
-    for (final channel in channelsToSearch) {
-      if (channel.isEmpty) continue;
-      final hash = _computeChannelHash(channel.psk);
-      if (hash != channelHash) continue;
+      final payload = BufferReader(packet.payload);
+      final channelHash = payload.readByte();
+      final encrypted = Uint8List.fromList(payload.readRemainingBytes());
 
-      final decrypted = _decryptPayload(channel.psk, encrypted);
-      if (decrypted == null || decrypted.length < 6) return;
+      // Use cached channels as fallback if live channels not yet loaded
+      final channelsToSearch = _channels.isNotEmpty
+          ? _channels
+          : _cachedChannels;
+      for (final channel in channelsToSearch) {
+        if (channel.isEmpty) continue;
+        final hash = _computeChannelHash(channel.psk);
+        if (hash != channelHash) continue;
+        try {
+          final decryptedBytes = _decryptPayload(channel.psk, encrypted);
+          if (decryptedBytes == null || decryptedBytes.length < 6) return;
+          final decrypted = BufferReader(decryptedBytes);
 
-      final txtType = decrypted[4];
-      if ((txtType >> 2) != 0) {
-        return;
+          final timestampRaw = decrypted.readUInt32LE();
+          final txtType = decrypted.readByte();
+          if ((txtType >> 2) != 0) {
+            return;
+          }
+
+          final text = decrypted.readCString();
+          final parsed = _splitSenderText(text);
+          final decodedText =
+              Smaz.tryDecodePrefixed(parsed.text) ?? parsed.text;
+          if (_shouldDropSelfChannelMessage(
+            parsed.senderName,
+            packet.pathBytes,
+          )) {
+            return;
+          }
+
+          final pktHash = _computePacketHash(
+            packet.payloadType,
+            packet.payload,
+          );
+
+          final message = ChannelMessage(
+            senderKey: null,
+            senderName: parsed.senderName,
+            text: decodedText,
+            timestamp: DateTime.fromMillisecondsSinceEpoch(timestampRaw * 1000),
+            isOutgoing: false,
+            status: ChannelMessageStatus.sent,
+            pathLength: packet.isFlood ? packet.hopCount : 0,
+            pathBytes: packet.pathBytes,
+            channelIndex: channel.index,
+            packetHash: pktHash,
+          );
+
+          _updateContactLastMessageAtByName(
+            parsed.senderName,
+            message.timestamp,
+            pathBytes: message.pathBytes,
+          );
+          final isNew = _addChannelMessage(channel.index, message);
+          _maybeIncrementChannelUnread(message, isNew: isNew);
+          notifyListeners();
+          if (isNew) {
+            final label = channel.name.isEmpty
+                ? 'Channel ${channel.index}'
+                : channel.name;
+            _maybeNotifyChannelMessage(message, channelName: label);
+          }
+          return;
+        } catch (e) {
+          appLogger.warn('Decryption failed for channel ${channel.index}: $e');
+        }
       }
-
-      final timestampRaw = readUint32LE(decrypted, 0);
-      final text = readCString(decrypted, 5, decrypted.length - 5);
-      final parsed = _splitSenderText(text);
-      final decodedText = Smaz.tryDecodePrefixed(parsed.text) ?? parsed.text;
-      if (_shouldDropSelfChannelMessage(parsed.senderName, packet.pathBytes)) {
-        return;
-      }
-
-      final pktHash = _computePacketHash(packet.payloadType, packet.payload);
-
-      final message = ChannelMessage(
-        senderKey: null,
-        senderName: parsed.senderName,
-        text: decodedText,
-        timestamp: DateTime.fromMillisecondsSinceEpoch(timestampRaw * 1000),
-        isOutgoing: false,
-        status: ChannelMessageStatus.sent,
-        pathLength: packet.isFlood ? packet.hopCount : 0,
-        pathBytes: packet.pathBytes,
-        channelIndex: channel.index,
-        packetHash: pktHash,
-      );
-
-      _updateContactLastMessageAtByName(
-        parsed.senderName,
-        message.timestamp,
-        pathBytes: message.pathBytes,
-      );
-      final isNew = _addChannelMessage(channel.index, message);
-      _maybeIncrementChannelUnread(message, isNew: isNew);
-      notifyListeners();
-      if (isNew) {
-        final label = channel.name.isEmpty
-            ? 'Channel ${channel.index}'
-            : channel.name;
-        _maybeNotifyChannelMessage(message, channelName: label);
-      }
-      return;
+    } catch (e) {
+      appLogger.warn('Error handling log RX data frame: $e');
     }
   }
 
@@ -4145,15 +4387,15 @@ class MeshCoreConnector extends ChangeNotifier {
     // [2-5] = expected_ack_hash (uint32)
     // [6-9] = estimated_timeout_ms (uint32)
 
-    if (frame.length >= 10) {
-      final ackHash = Uint8List.fromList(frame.sublist(2, 6));
-      final timeoutMs = readUint32LE(frame, 6);
+    try {
+      final reader = BufferReader(frame);
+      reader.skipBytes(2); //Skip code and is_flood
+      final ackHash = reader.readUInt32LE();
+      final timeoutMs = reader.readUInt32LE();
 
       // Check if this is a CLI command ACK - if so, ignore it
       if (_lastSentWasCliCommand) {
-        final ackHashHex = ackHash
-            .map((b) => b.toRadixString(16).padLeft(2, '0'))
-            .join();
+        final ackHashHex = ackHashToHex(ackHash);
         debugPrint('Ignoring CLI command ACK (sent): $ackHashHex');
         _lastSentWasCliCommand = false;
         return;
@@ -4172,7 +4414,8 @@ class MeshCoreConnector extends ChangeNotifier {
       if (_markNextPendingChannelMessageSent()) {
         return;
       }
-    } else {
+    } catch (e) {
+      appLogger.warn('Error handling message sent frame: $e');
       // Fallback to old behavior
       for (var messages in _conversations.values) {
         for (int i = messages.length - 1; i >= 0; i--) {
@@ -4251,9 +4494,11 @@ class MeshCoreConnector extends ChangeNotifier {
     // [1-4] = ack_hash (uint32)
     // [5-8] = trip_time_ms (uint32)
 
-    if (frame.length >= 9) {
-      final ackHash = Uint8List.fromList(frame.sublist(1, 5));
-      final tripTimeMs = readUint32LE(frame, 5);
+    try {
+      final reader = BufferReader(frame);
+      reader.skipBytes(1); // Skip code
+      final ackHash = reader.readUInt32LE();
+      final tripTimeMs = reader.readUInt32LE();
 
       // CLI command ACKs are already filtered in _handleMessageSent, so this should only see real messages
 
@@ -4265,7 +4510,8 @@ class MeshCoreConnector extends ChangeNotifier {
       if (_retryService != null) {
         _retryService!.handleAckReceived(ackHash, tripTimeMs);
       }
-    } else {
+    } catch (e) {
+      appLogger.warn('Error handling send confirmed frame: $e');
       // Fallback to old behavior
       for (var messages in _conversations.values) {
         for (int i = messages.length - 1; i >= 0; i--) {
@@ -4280,10 +4526,8 @@ class MeshCoreConnector extends ChangeNotifier {
     }
   }
 
-  bool _handleRepeaterCommandSent(Uint8List ackHash, int timeoutMs) {
-    final ackHashHex = ackHash
-        .map((b) => b.toRadixString(16).padLeft(2, '0'))
-        .join();
+  bool _handleRepeaterCommandSent(int ackHash, int timeoutMs) {
+    final ackHashHex = ackHashToHex(ackHash);
     final entry = _pendingRepeaterAcks[ackHashHex];
     if (entry == null) return false;
 
@@ -4301,10 +4545,8 @@ class MeshCoreConnector extends ChangeNotifier {
     return true;
   }
 
-  bool _handleRepeaterCommandAck(Uint8List ackHash, int tripTimeMs) {
-    final ackHashHex = ackHash
-        .map((b) => b.toRadixString(16).padLeft(2, '0'))
-        .join();
+  bool _handleRepeaterCommandAck(int ackHash, int tripTimeMs) {
+    final ackHashHex = ackHashToHex(ackHash);
     final entry = _pendingRepeaterAcks.remove(ackHashHex);
     if (entry == null) return false;
     entry.timeout?.cancel();
@@ -4655,36 +4897,35 @@ class MeshCoreConnector extends ChangeNotifier {
   }
 
   _RawPacket? _parseRawPacket(Uint8List raw) {
-    if (raw.length < 3) return null;
-    var index = 0;
-    final header = raw[index++];
-    final routeType = header & _phRouteMask;
-    final hasTransport =
-        routeType == _routeTransportFlood || routeType == _routeTransportDirect;
-    if (hasTransport) {
-      if (raw.length < index + 4) return null;
-      index += 4;
-    }
-    if (raw.length <= index) return null;
-    final pathLenRaw = raw[index++];
-    final pathByteLen = _decodePathByteLen(pathLenRaw);
-    if (raw.length < index + pathByteLen) return null;
-    final pathBytes = Uint8List.fromList(
-      raw.sublist(index, index + pathByteLen),
-    );
-    index += pathByteLen;
-    if (raw.length <= index) return null;
-    final payload = Uint8List.fromList(raw.sublist(index));
+    try {
+      final reader = BufferReader(raw);
+      final header = reader.readByte();
+      final routeType = header & _phRouteMask;
+      final hasTransport =
+          routeType == _routeTransportFlood ||
+          routeType == _routeTransportDirect;
+      if (hasTransport) {
+        // Skip reserved bytes in transport header made up of two u16 fields
+        reader.skipBytes(4);
+      }
+      final pathLenRaw = reader.readByte();
+      final pathByteLen = _decodePathByteLen(pathLenRaw);
+      final pathBytes = reader.readBytes(pathByteLen);
+      final payload = reader.readBytes(reader.remaining);
 
-    return _RawPacket(
-      header: header,
-      routeType: routeType,
-      payloadType: (header >> _phTypeShift) & _phTypeMask,
-      payloadVer: (header >> _phVerShift) & _phVerMask,
-      pathLenRaw: pathLenRaw,
-      pathBytes: pathBytes,
-      payload: payload,
-    );
+      return _RawPacket(
+        header: header,
+        routeType: routeType,
+        payloadType: (header >> _phTypeShift) & _phTypeMask,
+        payloadVer: (header >> _phVerShift) & _phVerMask,
+        pathLenRaw: pathLenRaw,
+        pathBytes: pathBytes,
+        payload: payload,
+      );
+    } catch (e) {
+      appLogger.warn('Error parsing raw packet: $e');
+      return null;
+    }
   }
 
   int _computeChannelHash(Uint8List psk) {
@@ -5021,6 +5262,12 @@ class MeshCoreConnector extends ChangeNotifier {
 
   void _handleDisconnection() {
     _stopBatteryPolling();
+    _stopRadioStatsPolling();
+    _latestRadioStats = null;
+    radioStatsNotifier.value = null;
+    _prevTotalAirSecs = 0;
+    _airtimeBumpStopwatch?.stop();
+    _airtimeBumpStopwatch = null;
 
     for (final entry in _pendingRepeaterAcks.values) {
       entry.timeout?.cancel();
@@ -5103,7 +5350,7 @@ class MeshCoreConnector extends ChangeNotifier {
   void _handleCustomVars(Uint8List frame) {
     final buf = BufferReader(frame.sublist(1));
     try {
-      _currentCustomVars = _parseKeyValueString(buf.readString());
+      _currentCustomVars = _parseKeyValueString(buf.readCString());
     } catch (e) {
       appLogger.warn('Malformed custom vars frame: $e', tag: 'Connector');
     }
@@ -5159,6 +5406,8 @@ class MeshCoreConnector extends ChangeNotifier {
     _notifyListenersTimer?.cancel();
     _reconnectTimer?.cancel();
     _batteryPollTimer?.cancel();
+    _radioStatsPollTimer?.cancel();
+    radioStatsNotifier.dispose();
     _receivedFramesController.close();
     _usbManager.dispose();
     _tcpConnector.dispose();
@@ -5260,7 +5509,7 @@ class MeshCoreConnector extends ChangeNotifier {
         longitude = packet.readInt32LE() / 1e6;
       }
       if (hasName && packet.remaining > 0) {
-        name = packet.readString();
+        name = packet.readCString();
       }
     } catch (e) {
       appLogger.warn('Malformed advert frame: $e', tag: 'Connector');
@@ -5282,6 +5531,17 @@ class MeshCoreConnector extends ChangeNotifier {
         lastSeen: DateTime.fromMillisecondsSinceEpoch(timestamp * 1000),
       ),
     );
+  }
+
+  bool hasValidLocation(double? latitude, double? longitude) {
+    const double epsilon = 1e-6;
+    final lat = latitude ?? 0.0;
+    final lon = longitude ?? 0.0;
+    return (lat.abs() > epsilon || lon.abs() > epsilon) &&
+        lat >= -90.0 &&
+        lat <= 90.0 &&
+        lon >= -180.0 &&
+        lon <= 180.0;
   }
 
   void _handlePayloadAdvertReceived(
@@ -5321,8 +5581,11 @@ class MeshCoreConnector extends ChangeNotifier {
         latitude = advert.readInt32LE() / 1e6;
         longitude = advert.readInt32LE() / 1e6;
       }
+      // Validate location values if present
+      hasLocation = hasValidLocation(latitude, longitude);
+
       if (hasName && advert.remaining > 0) {
-        name = advert.readString();
+        name = advert.readCString();
       }
     } catch (e) {
       appLogger.warn('Malformed advert frame: $e', tag: 'Connector');
@@ -5386,20 +5649,8 @@ class MeshCoreConnector extends ChangeNotifier {
 
       // CRITICAL: Preserve user's path override when contact is refreshed from device
       _contacts[existingIndex] = existing.copyWith(
-        latitude:
-            hasLocation &&
-                latitude != null &&
-                latitude.abs() <= 90 &&
-                (latitude != 0 || longitude != 0)
-            ? latitude
-            : existing.latitude,
-        longitude:
-            hasLocation &&
-                longitude != null &&
-                longitude.abs() <= 180 &&
-                (latitude != 0 || longitude != 0)
-            ? longitude
-            : existing.longitude,
+        latitude: hasLocation ? latitude : existing.latitude,
+        longitude: hasLocation ? longitude : existing.longitude,
         name: hasName ? name : existing.name,
         path: Uint8List.fromList(path.reversed.toList()),
         pathLength: path.length,
@@ -5547,6 +5798,29 @@ class MeshCoreConnector extends ChangeNotifier {
     _discoveredContacts.clear();
     unawaited(_persistDiscoveredContacts());
     notifyListeners();
+  }
+
+  void clearMessagesForContact(Contact contact) {
+    final contactKeyHex = contact.publicKeyHex;
+    final messages = _conversations[contactKeyHex];
+    if (messages == null) return;
+    messages.clear();
+    unawaited(_messageStore.saveMessages(contactKeyHex, messages));
+    markContactRead(contactKeyHex);
+    notifyListeners();
+  }
+
+  void clearMessagesForChannel(int channelIndex) {
+    final messages = _channelMessages[channelIndex];
+    if (messages == null) return;
+    messages.clear();
+    unawaited(_channelMessageStore.saveChannelMessages(channelIndex, messages));
+    markChannelRead(channelIndex);
+    notifyListeners();
+  }
+
+  void deleteAllPaths() {
+    _pathHistoryService?.clearAllHistories();
   }
 }
 

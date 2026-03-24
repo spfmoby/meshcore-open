@@ -1928,6 +1928,35 @@
       }
     }
   },
+  "settings_allowByContact": "Zulassen durch Kontaktflaggen",
+  "settings_privacy": "Datenschutzeinstellungen",
+  "settings_allowAll": "Alles zulassen",
+  "settings_privacySettingsDescription": "Wählen Sie die Informationen, die Ihr Gerät mit anderen teilt.",
+  "settings_denyAll": "Alle ablehnen",
+  "settings_privacySubtitle": "Steuern Sie die Informationen, die freigegeben werden.",
+  "settings_telemetryLocationMode": "Telemetrie-Ortsmodus",
+  "settings_telemetryEnvironmentMode": "Telemetrie-Umgebungsmodus",
+  "settings_advertLocation": "Anzeigenort",
+  "settings_advertLocationSubtitle": "Ort in der Anzeige einbeziehen",
+  "settings_telemetryBaseMode": "Telemetrie-Basismodus",
+  "contact_teleBase": "Telemetriebasis",
+  "contact_teleBaseSubtitle": "Erlauben des Freigebens des Batteriestands und der grundlegenden Telemetrie",
+  "contact_teleLoc": "Telemetrieort",
+  "contact_teleLocSubtitle": "Teilen von Standortdaten zulassen",
+  "contact_info": "Kontaktinformationen",
+  "contact_settings": "Kontakteinstellungen",
+  "contact_telemetry": "Telemetrie",
+  "contact_teleEnv": "Telemetrieumgebung",
+  "contact_lastSeen": "Zuletzt gesehen",
+  "contact_clearChat": "Chat löschen",
+  "contact_teleEnvSubtitle": "Teilen von Umgebungsensordaten zulassen",
+  "@settings_multiAck": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "appSettings_initialRouteWeightSubtitle": "Ausgangsgewicht für neu entdeckte Pfade",
   "appSettings_maxRouteWeightSubtitle": "Maximales Gewicht, das ein Weg durch erfolgreiche Lieferungen erreichen kann.",
   "appSettings_maxRouteWeight": "Maximale Gesamtstreckenlänge",
@@ -1942,6 +1971,27 @@
   "@scanner_linuxPairingPinPrompt": {
     "placeholders": {
       "deviceName": {
+  "settings_telemetryModeUpdated": "Telemetriemodus aktualisiert",
+  "settings_multiAck": "Mehrfach-Bestätigungen: {value}",
+  "map_showOverlaps": "Überlappungen der Repeater-Taste",
+  "map_runTraceWithReturnPath": "Auf dem gleichen Pfad zurückkehren.",
+  "@radioStats_noiseFloor": {
+    "placeholders": {
+      "noiseDbm": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_lastRssi": {
+    "placeholders": {
+      "rssiDbm": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_lastSnr": {
+    "placeholders": {
+      "snr": {
         "type": "String"
       }
     }
@@ -1950,4 +2000,46 @@
   "scanner_linuxPairingPinPrompt": "Geben Sie den PIN-Code für {deviceName} ein (lassen Sie das Feld leer, falls kein PIN-Code vorhanden ist).",
   "scanner_linuxPairingShowPin": "PIN anzeigen",
   "scanner_linuxPairingPinTitle": "PIN für die Bluetooth-Verbindung"
+  "@radioStats_txAir": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_rxAir": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_stripNoise": {
+    "placeholders": {
+      "noiseDbm": {
+        "type": "int"
+      }
+    }
+  },
+  "chat_sendCooldown": "Bitte warten Sie einen Moment, bevor Sie erneut senden.",
+  "appSettings_jumpToOldestUnread": "Zum ältesten, nicht gelesenen Eintrag springen",
+  "appSettings_languageHu": "Ungarisch",
+  "appSettings_jumpToOldestUnreadSubtitle": "Wenn Sie ein Chatfenster öffnen, in dem Nachrichten vorhanden sind, die noch nicht gelesen wurden, scrollen Sie zu der ersten unlesenen Nachricht, anstatt zur neuesten.",
+  "appSettings_languageJa": "Japanisch",
+  "appSettings_languageKo": "Koreanisch",
+  "radioStats_tooltip": "Daten zu Radio- und Mesh-Netzwerken",
+  "radioStats_screenTitle": "Senderinformationen",
+  "radioStats_notConnected": "Verbinden Sie ein Gerät, um Radiostatisiken anzuzeigen.",
+  "radioStats_firmwareTooOld": "Für die Verwendung der Funkstatistiken ist die Firmware-Version 8 oder höher erforderlich.",
+  "radioStats_waiting": "Warte auf Daten…",
+  "radioStats_noiseFloor": "Rauschpegel: {noiseDbm} dBm",
+  "radioStats_lastRssi": "Letzter RSSI-Wert: {rssiDbm} dBm",
+  "radioStats_lastSnr": "Letzter SNR: {snr} dB",
+  "radioStats_txAir": "Gesamt-TX-Zeit: {seconds} s",
+  "radioStats_rxAir": "Gesamt-RX-Zeit: {seconds} s",
+  "radioStats_chartCaption": "Rauschpegel (dBm) basierend auf den letzten Messwerten.",
+  "radioStats_stripNoise": "Rauschpegel: {noiseDbm} dBm",
+  "radioStats_stripWaiting": "Abrufen von Radiostatus…",
+  "radioStats_settingsTile": "Senderinformationen",
+  "radioStats_settingsSubtitle": "Rauschpegel, RSSI, Signal-Rausch-Verhältnis (SNR) und Nutzzeit"
 }

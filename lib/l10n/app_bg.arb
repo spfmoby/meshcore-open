@@ -1900,6 +1900,35 @@
       }
     }
   },
+  "settings_denyAll": "Откажи всичко",
+  "settings_allowAll": "Позволи всичко",
+  "settings_allowByContact": "Позволи по флагове за контакт",
+  "settings_privacy": "Настройки на поверителността",
+  "settings_privacySettingsDescription": "Изберете каква информация устройството ви споделя с другите.",
+  "settings_privacySubtitle": "Контролирайте каква информация се споделя.",
+  "settings_telemetryBaseMode": "Базов режим на телеметрия",
+  "settings_telemetryLocationMode": "Режим на местоположение на телеметрията",
+  "settings_advertLocation": "Място на обявата",
+  "settings_advertLocationSubtitle": "Включи местоположение в обявата",
+  "contact_info": "Контактна информация",
+  "settings_telemetryEnvironmentMode": "Режим на средата на телеметрията",
+  "contact_telemetry": "Телеметрия",
+  "contact_lastSeen": "Последно видян",
+  "contact_clearChat": "Изчисти чата",
+  "contact_teleBase": "Базата данни за телеметрия",
+  "contact_settings": "Настройки за контакти",
+  "contact_teleBaseSubtitle": "Позволи споделяне на ниво на батерията и основна телеметрия",
+  "contact_teleEnv": "Среда на телеметрия",
+  "contact_teleLocSubtitle": "Позволи споделяне на данни за местоположение",
+  "contact_teleLoc": "Местоположение на телеметрията",
+  "contact_teleEnvSubtitle": "Позволи споделяне на данни от средносферните датчици",
+  "@settings_multiAck": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "appSettings_initialRouteWeight": "Първоначална тежест на маршрута",
   "appSettings_maxRouteWeight": "Максимално допустимо тегло на маршрута",
   "appSettings_initialRouteWeightSubtitle": "Начално тегло за новооткрити маршрути",
@@ -1914,6 +1943,27 @@
   "@scanner_linuxPairingPinPrompt": {
     "placeholders": {
       "deviceName": {
+  "settings_multiAck": "Мулти-потвърди: {value}",
+  "settings_telemetryModeUpdated": "Режим на телеметрията е обновен",
+  "map_showOverlaps": "Покриване на ключа на повтаряча",
+  "map_runTraceWithReturnPath": "Върни се по същия път.",
+  "@radioStats_noiseFloor": {
+    "placeholders": {
+      "noiseDbm": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_lastRssi": {
+    "placeholders": {
+      "rssiDbm": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_lastSnr": {
+    "placeholders": {
+      "snr": {
         "type": "String"
       }
     }
@@ -1922,4 +1972,46 @@
   "scanner_linuxPairingShowPin": "Покажи PIN",
   "scanner_linuxPairingHidePin": "Скриване на PIN кода",
   "scanner_linuxPairingPinPrompt": "Въведете PIN кода за {deviceName} (оставете празно, ако няма такъв)."
+  "@radioStats_txAir": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_rxAir": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_stripNoise": {
+    "placeholders": {
+      "noiseDbm": {
+        "type": "int"
+      }
+    }
+  },
+  "chat_sendCooldown": "Моля, изчакайте малко, преди да изпратите отново.",
+  "appSettings_languageHu": "Унгарски",
+  "appSettings_jumpToOldestUnread": "Преминете към най-старата непочетена статия",
+  "appSettings_jumpToOldestUnreadSubtitle": "Когато отворите чат с непрочетени съобщения, плъзнете надолу, за да видите първото непрочетено съобщение, вместо най-новото.",
+  "appSettings_languageJa": "Японски",
+  "appSettings_languageKo": "Корейски",
+  "radioStats_tooltip": "Статистика за радио и мрежа",
+  "radioStats_screenTitle": "Статистически данни за радиопредаванията",
+  "radioStats_notConnected": "Свържете се с устройство, за да видите статистически данни за радиопредаване.",
+  "radioStats_firmwareTooOld": "Статистиката на радиостанцията изисква съвместимо софтуерно решение версия 8 или по-нова.",
+  "radioStats_waiting": "Изчакване на данни…",
+  "radioStats_noiseFloor": "Ниво на шума: {noiseDbm} dBm",
+  "radioStats_lastRssi": "Последен RSSI: {rssiDbm} dBm",
+  "radioStats_lastSnr": "Последна стойност на SNR: {snr} dB",
+  "radioStats_txAir": "Време на въздух (общо): {seconds} секунди",
+  "radioStats_rxAir": "Общо време на използване на RX (в секунди): {seconds} с",
+  "radioStats_chartCaption": "Ниво на шума (dBm) за последните измервания.",
+  "radioStats_stripNoise": "Ниво на шума: {noiseDbm} dBm",
+  "radioStats_stripWaiting": "Извличане на данни за радиото…",
+  "radioStats_settingsTile": "Статистически данни за радиостанции",
+  "radioStats_settingsSubtitle": "Ниво на шума, RSSI, SNR и време на пренос"
 }

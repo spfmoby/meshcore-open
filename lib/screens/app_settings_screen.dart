@@ -292,6 +292,14 @@ class AppSettingsScreen extends StatelessWidget {
           ),
           const Divider(height: 1),
           SwitchListTile(
+            secondary: const Icon(Icons.vertical_align_top),
+            title: Text(context.l10n.appSettings_jumpToOldestUnread),
+            subtitle: Text(context.l10n.appSettings_jumpToOldestUnreadSubtitle),
+            value: settingsService.settings.jumpToOldestUnread,
+            onChanged: settingsService.setJumpToOldestUnread,
+          ),
+          const Divider(height: 1),
+          SwitchListTile(
             secondary: const Icon(Icons.alt_route),
             title: Text(context.l10n.appSettings_autoRouteRotation),
             subtitle: Text(context.l10n.appSettings_autoRouteRotationSubtitle),
@@ -689,6 +697,12 @@ class AppSettingsScreen extends StatelessWidget {
         return context.l10n.appSettings_languageRu;
       case 'uk':
         return context.l10n.appSettings_languageUk;
+      case 'hu':
+        return context.l10n.appSettings_languageHu;
+      case 'ja':
+        return context.l10n.appSettings_languageJa;
+      case 'ko':
+        return context.l10n.appSettings_languageKo;
       default:
         return context.l10n.appSettings_languageSystem;
     }
@@ -775,6 +789,18 @@ class AppSettingsScreen extends StatelessWidget {
                 RadioListTile<String?>(
                   title: Text(context.l10n.appSettings_languageUk),
                   value: 'uk',
+                ),
+                RadioListTile<String?>(
+                  title: Text(context.l10n.appSettings_languageHu),
+                  value: 'hu',
+                ),
+                RadioListTile<String?>(
+                  title: Text(context.l10n.appSettings_languageJa),
+                  value: 'ja',
+                ),
+                RadioListTile<String?>(
+                  title: Text(context.l10n.appSettings_languageKo),
+                  value: 'ko',
                 ),
               ],
             ),

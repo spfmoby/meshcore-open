@@ -64,6 +64,10 @@ class AppSettingsService extends ChangeNotifier {
     await updateSettings(_settings.copyWith(mapShowOtherNodes: value));
   }
 
+  Future<void> setMapShowOverlaps(bool value) async {
+    await updateSettings(_settings.copyWith(mapShowOverlaps: value));
+  }
+
   Future<void> setMapTimeFilterHours(double value) async {
     await updateSettings(_settings.copyWith(mapTimeFilterHours: value));
   }
@@ -213,5 +217,9 @@ class AppSettingsService extends ChangeNotifier {
 
   Future<void> setTcpServerPort(int value) async {
     await updateSettings(_settings.copyWith(tcpServerPort: value));
+  }
+
+  Future<void> setJumpToOldestUnread(bool value) async {
+    await updateSettings(_settings.copyWith(jumpToOldestUnread: value));
   }
 }

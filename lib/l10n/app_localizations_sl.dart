@@ -409,6 +409,50 @@ class AppLocalizationsSl extends AppLocalizations {
   String get settings_privacyModeDisabled => 'Privatni način je onemogočen.';
 
   @override
+  String get settings_privacy => 'Nastavitve zasebnosti';
+
+  @override
+  String get settings_privacySubtitle =>
+      'Kontrolirajte, katere informacije so deljene.';
+
+  @override
+  String get settings_privacySettingsDescription =>
+      'Izberite, katere informacije vaš naprava deli z drugimi.';
+
+  @override
+  String get settings_denyAll => 'Zavrniti vse';
+
+  @override
+  String get settings_allowByContact => 'Dovoli po kontaktnih zastavah';
+
+  @override
+  String get settings_allowAll => 'Dovoli vse';
+
+  @override
+  String get settings_telemetryBaseMode => 'Osnovni način telemetrije';
+
+  @override
+  String get settings_telemetryLocationMode => 'Način delovanja telemetrije';
+
+  @override
+  String get settings_telemetryEnvironmentMode =>
+      'Način delovanja okolja telemetrije';
+
+  @override
+  String get settings_advertLocation => 'Lokacija oglasa';
+
+  @override
+  String get settings_advertLocationSubtitle => 'Vključi lokacijo v oglas.';
+
+  @override
+  String settings_multiAck(String value) {
+    return 'Večkratni potrditvi: $value';
+  }
+
+  @override
+  String get settings_telemetryModeUpdated => 'Način telemetrije posodobljen';
+
+  @override
   String get settings_actions => 'Akcije';
 
   @override
@@ -991,6 +1035,41 @@ class AppLocalizationsSl extends AppLocalizations {
   String contacts_lastSeenDaysAgo(int days) {
     return 'Zadnjič viden pred $days dnem';
   }
+
+  @override
+  String get contact_info => 'Kontaktni podatki';
+
+  @override
+  String get contact_settings => 'Nastavitve stika';
+
+  @override
+  String get contact_telemetry => 'Telemetrija';
+
+  @override
+  String get contact_lastSeen => 'Zadnjič videno';
+
+  @override
+  String get contact_clearChat => 'Počisti klepet';
+
+  @override
+  String get contact_teleBase => 'Baza telemetrije';
+
+  @override
+  String get contact_teleBaseSubtitle =>
+      'Dovoli deljenje stanja baterije in osnovne telemetrije';
+
+  @override
+  String get contact_teleLoc => 'Lokacija telemetrije';
+
+  @override
+  String get contact_teleLocSubtitle => 'Dovoli deljenje podatkov o lokaciji';
+
+  @override
+  String get contact_teleEnv => 'Okolje telemetrije';
+
+  @override
+  String get contact_teleEnvSubtitle =>
+      'Dovoli deljenje podatkov okoljskih senzorjev';
 
   @override
   String get channels_title => 'Kanali';
@@ -1608,6 +1687,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get map_otherNodes => 'Druge vozlišča';
 
   @override
+  String get map_showOverlaps => 'Prekrivanje ključa ponovnega predvajanja';
+
+  @override
   String get map_keyPrefix => 'Predpona ključa';
 
   @override
@@ -1648,6 +1730,9 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get map_runTrace => 'Zaženi sledenje poti';
+
+  @override
+  String get map_runTraceWithReturnPath => 'Vrni se nazaj po isti poti.';
 
   @override
   String get map_removeLast => 'Odstrani Zadnji';
@@ -3397,4 +3482,86 @@ class AppLocalizationsSl extends AppLocalizations {
   @override
   String get discoveredContacts_deleteContactAllContent =>
       'Ste prepričani, da želite izbrisati vse odkrite kontakte?';
+
+  @override
+  String get chat_sendCooldown =>
+      'Prosimo, počakajte trenutek, preden pošljete ponovno.';
+
+  @override
+  String get appSettings_jumpToOldestUnread =>
+      'Pritisnite za najstarejše nepročitano sporočilo';
+
+  @override
+  String get appSettings_jumpToOldestUnreadSubtitle =>
+      'Ko odpirate klepet z neprebranimi sporočili, se premaknite na prvo neprebrano sporočilo, namesto najnovejšega.';
+
+  @override
+  String get appSettings_languageHu => 'Madžarski';
+
+  @override
+  String get appSettings_languageJa => 'Japonski';
+
+  @override
+  String get appSettings_languageKo => 'Korejski';
+
+  @override
+  String get radioStats_tooltip => 'Statistike za radio in mrežo';
+
+  @override
+  String get radioStats_screenTitle => 'Radijske statistike';
+
+  @override
+  String get radioStats_notConnected =>
+      'Povežite se z napravo, da si ogledate statistiko o radiju.';
+
+  @override
+  String get radioStats_firmwareTooOld =>
+      'Statistika za radio zahteva združljivo programsko opremo v8 ali kasnejše.';
+
+  @override
+  String get radioStats_waiting => 'Čakam na podatke…';
+
+  @override
+  String radioStats_noiseFloor(int noiseDbm) {
+    return 'Število šuma: $noiseDbm dBm';
+  }
+
+  @override
+  String radioStats_lastRssi(int rssiDbm) {
+    return 'Najkasnejše vrednost RSSI: $rssiDbm dBm';
+  }
+
+  @override
+  String radioStats_lastSnr(String snr) {
+    return 'Najkasnejše vrednost SNR: $snr dB';
+  }
+
+  @override
+  String radioStats_txAir(int seconds) {
+    return 'Čas na TX (skupno): $seconds s';
+  }
+
+  @override
+  String radioStats_rxAir(int seconds) {
+    return 'Čas, namenjen RX-ju (skupno): $seconds s';
+  }
+
+  @override
+  String get radioStats_chartCaption =>
+      'Ravnovredna raven šuma (dBm) za nedavne vzorce.';
+
+  @override
+  String radioStats_stripNoise(int noiseDbm) {
+    return 'Število šuma: $noiseDbm dBm';
+  }
+
+  @override
+  String get radioStats_stripWaiting => 'Prejemanje statistike o radiju…';
+
+  @override
+  String get radioStats_settingsTile => 'Radijske statistike';
+
+  @override
+  String get radioStats_settingsSubtitle =>
+      'Število šumov, RSSI, SNR in čas, ki ga je napolnila oprema';
 }

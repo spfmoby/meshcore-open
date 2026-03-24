@@ -389,6 +389,47 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_privacyModeDisabled => '隐私模式已关闭';
 
   @override
+  String get settings_privacy => '隐私设置';
+
+  @override
+  String get settings_privacySubtitle => '控制要共享的信息。';
+
+  @override
+  String get settings_privacySettingsDescription => '选择您的设备与他人共享的信息。';
+
+  @override
+  String get settings_denyAll => '拒绝所有';
+
+  @override
+  String get settings_allowByContact => '按联系人标志允许';
+
+  @override
+  String get settings_allowAll => '允许全部';
+
+  @override
+  String get settings_telemetryBaseMode => '遥测基础模式';
+
+  @override
+  String get settings_telemetryLocationMode => '遥测位置模式';
+
+  @override
+  String get settings_telemetryEnvironmentMode => '遥测环境模式';
+
+  @override
+  String get settings_advertLocation => '广告位置';
+
+  @override
+  String get settings_advertLocationSubtitle => '在广告中包含位置';
+
+  @override
+  String settings_multiAck(String value) {
+    return '多重ACK：$value';
+  }
+
+  @override
+  String get settings_telemetryModeUpdated => '遥测模式已更新';
+
+  @override
   String get settings_actions => '操作';
 
   @override
@@ -936,6 +977,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String contacts_lastSeenDaysAgo(int days) {
     return '最后在线 $days 天前';
   }
+
+  @override
+  String get contact_info => '联系信息';
+
+  @override
+  String get contact_settings => '联系人设置';
+
+  @override
+  String get contact_telemetry => '遥测数据';
+
+  @override
+  String get contact_lastSeen => '最近出现';
+
+  @override
+  String get contact_clearChat => '清除聊天记录';
+
+  @override
+  String get contact_teleBase => '遥测基站';
+
+  @override
+  String get contact_teleBaseSubtitle => '允许共享电池电量和基本遥测数据';
+
+  @override
+  String get contact_teleLoc => '遥测位置';
+
+  @override
+  String get contact_teleLocSubtitle => '允许共享位置数据';
+
+  @override
+  String get contact_teleEnv => '遥测环境';
+
+  @override
+  String get contact_teleEnvSubtitle => '允许共享环境传感器数据';
 
   @override
   String get channels_title => '频道';
@@ -1523,6 +1597,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get map_otherNodes => '其他节点';
 
   @override
+  String get map_showOverlaps => '重复键重叠';
+
+  @override
   String get map_keyPrefix => '关键字前缀';
 
   @override
@@ -1563,6 +1640,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get map_runTrace => '运行路径追踪';
+
+  @override
+  String get map_runTraceWithReturnPath => '沿着相同的路径返回';
 
   @override
   String get map_removeLast => '移除最后一个';
@@ -3156,4 +3236,80 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get discoveredContacts_deleteContactAllContent => '您确定要删除所有发现的联系人吗？';
+
+  @override
+  String get chat_sendCooldown => '请稍等片刻后再尝试发送。';
+
+  @override
+  String get appSettings_jumpToOldestUnread => '跳转到最旧、未读的文章';
+
+  @override
+  String get appSettings_jumpToOldestUnreadSubtitle =>
+      '在打开包含未读消息的聊天时，请滚动到第一个未读消息，而不是最新的消息。';
+
+  @override
+  String get appSettings_languageHu => '匈牙利';
+
+  @override
+  String get appSettings_languageJa => '日语';
+
+  @override
+  String get appSettings_languageKo => '韩语';
+
+  @override
+  String get radioStats_tooltip => '无线电和网状结构统计数据';
+
+  @override
+  String get radioStats_screenTitle => '广播统计数据';
+
+  @override
+  String get radioStats_notConnected => '连接到设备以查看收音机统计信息。';
+
+  @override
+  String get radioStats_firmwareTooOld => '使用无线电统计功能需要配合使用 v8 或更高版本的固件。';
+
+  @override
+  String get radioStats_waiting => '正在等待数据…';
+
+  @override
+  String radioStats_noiseFloor(int noiseDbm) {
+    return '噪声水平：$noiseDbm dBm';
+  }
+
+  @override
+  String radioStats_lastRssi(int rssiDbm) {
+    return '上次 RSSI 值：$rssiDbm dBm';
+  }
+
+  @override
+  String radioStats_lastSnr(String snr) {
+    return '上次 SNR：$snr dB';
+  }
+
+  @override
+  String radioStats_txAir(int seconds) {
+    return 'TX 频道播出时间（总时长）：$seconds 秒';
+  }
+
+  @override
+  String radioStats_rxAir(int seconds) {
+    return 'RX 使用时长（总时长）：$seconds 秒';
+  }
+
+  @override
+  String get radioStats_chartCaption => '近期的噪声水平（dBm）。';
+
+  @override
+  String radioStats_stripNoise(int noiseDbm) {
+    return '噪声水平：$noiseDbm dBm';
+  }
+
+  @override
+  String get radioStats_stripWaiting => '正在获取收音机数据…';
+
+  @override
+  String get radioStats_settingsTile => '广播统计数据';
+
+  @override
+  String get radioStats_settingsSubtitle => '噪声水平、RSSI、信噪比和空中时间';
 }

@@ -416,6 +416,52 @@ class AppLocalizationsFr extends AppLocalizations {
       'Mode de confidentialité désactivé';
 
   @override
+  String get settings_privacy => 'Paramètres de confidentialité';
+
+  @override
+  String get settings_privacySubtitle => 'Contrôlez les informations partagées';
+
+  @override
+  String get settings_privacySettingsDescription =>
+      'Choisissez les informations que votre appareil partage avec les autres.';
+
+  @override
+  String get settings_denyAll => 'Refuser tout';
+
+  @override
+  String get settings_allowByContact => 'Autoriser par drapeaux de contact';
+
+  @override
+  String get settings_allowAll => 'Autoriser tout';
+
+  @override
+  String get settings_telemetryBaseMode => 'Mode de base Télémétrie';
+
+  @override
+  String get settings_telemetryLocationMode =>
+      'Mode d\'emplacement de télémétrie';
+
+  @override
+  String get settings_telemetryEnvironmentMode =>
+      'Mode d\'environnement de télémétrie';
+
+  @override
+  String get settings_advertLocation => 'Emplacement de l\'annonce';
+
+  @override
+  String get settings_advertLocationSubtitle =>
+      'Inclure l\'emplacement dans l\'annonce';
+
+  @override
+  String settings_multiAck(String value) {
+    return 'Multi-ACKs : $value';
+  }
+
+  @override
+  String get settings_telemetryModeUpdated =>
+      'Le mode télémétrie a été mis à jour';
+
+  @override
   String get settings_actions => 'Actions';
 
   @override
@@ -1005,6 +1051,42 @@ class AppLocalizationsFr extends AppLocalizations {
   String contacts_lastSeenDaysAgo(int days) {
     return '~ $days jours';
   }
+
+  @override
+  String get contact_info => 'Informations de contact';
+
+  @override
+  String get contact_settings => 'Paramètres de contact';
+
+  @override
+  String get contact_telemetry => 'Télémétrie';
+
+  @override
+  String get contact_lastSeen => 'Dernière fois vu';
+
+  @override
+  String get contact_clearChat => 'Effacer la conversation';
+
+  @override
+  String get contact_teleBase => 'Base de télémétrie';
+
+  @override
+  String get contact_teleBaseSubtitle =>
+      'Autoriser le partage du niveau de batterie et de la télémétrie de base';
+
+  @override
+  String get contact_teleLoc => 'Emplacement de télémétrie';
+
+  @override
+  String get contact_teleLocSubtitle =>
+      'Autoriser le partage des données de localisation';
+
+  @override
+  String get contact_teleEnv => 'Environnement Télémétrie';
+
+  @override
+  String get contact_teleEnvSubtitle =>
+      'Autoriser le partage des données des capteurs d\'environnement';
 
   @override
   String get channels_title => 'Canaux';
@@ -1629,6 +1711,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get map_otherNodes => 'Autres nœuds';
 
   @override
+  String get map_showOverlaps => 'Chevauchement de la touche répétitive';
+
+  @override
   String get map_keyPrefix => 'Préfixe clé';
 
   @override
@@ -1671,6 +1756,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get map_runTrace => 'Exécuter la traçage de chemin';
+
+  @override
+  String get map_runTraceWithReturnPath => 'Revenir sur le même chemin.';
 
   @override
   String get map_removeLast => 'Supprimer le dernier';
@@ -3438,4 +3526,88 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get discoveredContacts_deleteContactAllContent =>
       'Êtes-vous sûr de vouloir supprimer tous les contacts découverts ?';
+
+  @override
+  String get chat_sendCooldown =>
+      'Veuillez patienter un instant avant de réessayer.';
+
+  @override
+  String get appSettings_jumpToOldestUnread =>
+      'Accéder au message le plus ancien non lu';
+
+  @override
+  String get appSettings_jumpToOldestUnreadSubtitle =>
+      'Lorsque vous ouvrez une conversation contenant des messages non lus, faites défiler la page jusqu\'au premier message non lu, plutôt que jusqu\'au dernier.';
+
+  @override
+  String get appSettings_languageHu => 'Hongrois';
+
+  @override
+  String get appSettings_languageJa => 'Japonais';
+
+  @override
+  String get appSettings_languageKo => 'Coréen';
+
+  @override
+  String get radioStats_tooltip =>
+      'Statistiques des radios et des réseaux sans fil';
+
+  @override
+  String get radioStats_screenTitle => 'Statistiques de radio';
+
+  @override
+  String get radioStats_notConnected =>
+      'Connectez-vous à un appareil pour visualiser les statistiques de la radio.';
+
+  @override
+  String get radioStats_firmwareTooOld =>
+      'Les statistiques radio nécessitent un firmware compatible v8 ou une version ultérieure.';
+
+  @override
+  String get radioStats_waiting => 'En attente des données…';
+
+  @override
+  String radioStats_noiseFloor(int noiseDbm) {
+    return 'Niveau de bruit : $noiseDbm dBm';
+  }
+
+  @override
+  String radioStats_lastRssi(int rssiDbm) {
+    return 'Dernier RSSI : $rssiDbm dBm';
+  }
+
+  @override
+  String radioStats_lastSnr(String snr) {
+    return 'Dernier SNR : $snr dB';
+  }
+
+  @override
+  String radioStats_txAir(int seconds) {
+    return 'Temps d\'antenne à la télévision du Texas (total) : $seconds s';
+  }
+
+  @override
+  String radioStats_rxAir(int seconds) {
+    return 'Temps d\'utilisation de l\'appareil RX (total) : $seconds s';
+  }
+
+  @override
+  String get radioStats_chartCaption =>
+      'Niveau de bruit (dBm) sur les échantillons récents.';
+
+  @override
+  String radioStats_stripNoise(int noiseDbm) {
+    return 'Niveau de bruit : $noiseDbm dBm';
+  }
+
+  @override
+  String get radioStats_stripWaiting =>
+      'Récupération des statistiques de la radio…';
+
+  @override
+  String get radioStats_settingsTile => 'Statistiques de radio';
+
+  @override
+  String get radioStats_settingsSubtitle =>
+      'Niveau de bruit, RSSI, rapport signal/bruit (SNR) et temps d\'antenne';
 }

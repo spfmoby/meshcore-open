@@ -1900,6 +1900,35 @@
       }
     }
   },
+  "settings_privacy": "Paramètres de confidentialité",
+  "settings_privacySubtitle": "Contrôlez les informations partagées",
+  "settings_telemetryLocationMode": "Mode d'emplacement de télémétrie",
+  "settings_telemetryEnvironmentMode": "Mode d'environnement de télémétrie",
+  "settings_advertLocation": "Emplacement de l'annonce",
+  "settings_advertLocationSubtitle": "Inclure l'emplacement dans l'annonce",
+  "settings_denyAll": "Refuser tout",
+  "settings_allowByContact": "Autoriser par drapeaux de contact",
+  "settings_privacySettingsDescription": "Choisissez les informations que votre appareil partage avec les autres.",
+  "settings_allowAll": "Autoriser tout",
+  "contact_info": "Informations de contact",
+  "settings_telemetryBaseMode": "Mode de base Télémétrie",
+  "contact_teleBase": "Base de télémétrie",
+  "contact_teleLoc": "Emplacement de télémétrie",
+  "contact_teleLocSubtitle": "Autoriser le partage des données de localisation",
+  "contact_teleEnv": "Environnement Télémétrie",
+  "contact_teleEnvSubtitle": "Autoriser le partage des données des capteurs d'environnement",
+  "contact_telemetry": "Télémétrie",
+  "contact_settings": "Paramètres de contact",
+  "contact_lastSeen": "Dernière fois vu",
+  "contact_clearChat": "Effacer la conversation",
+  "contact_teleBaseSubtitle": "Autoriser le partage du niveau de batterie et de la télémétrie de base",
+  "@settings_multiAck": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "appSettings_maxRouteWeightSubtitle": "Poids maximal qu'un itinéraire peut accumuler grâce à des livraisons réussies.",
   "appSettings_initialRouteWeight": "Poids initial de l'itinéraire",
   "appSettings_maxRouteWeight": "Poids maximal autorisé pour le trajet",
@@ -1914,6 +1943,27 @@
   "@scanner_linuxPairingPinPrompt": {
     "placeholders": {
       "deviceName": {
+  "settings_multiAck": "Multi-ACKs : {value}",
+  "settings_telemetryModeUpdated": "Le mode télémétrie a été mis à jour",
+  "map_showOverlaps": "Chevauchement de la touche répétitive",
+  "map_runTraceWithReturnPath": "Revenir sur le même chemin.",
+  "@radioStats_noiseFloor": {
+    "placeholders": {
+      "noiseDbm": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_lastRssi": {
+    "placeholders": {
+      "rssiDbm": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_lastSnr": {
+    "placeholders": {
+      "snr": {
         "type": "String"
       }
     }
@@ -1922,4 +1972,46 @@
   "scanner_linuxPairingPinTitle": "Code PIN pour la connexion Bluetooth",
   "scanner_linuxPairingPinPrompt": "Entrez le code PIN pour {deviceName} (laissez vide si nécessaire).",
   "scanner_linuxPairingHidePin": "Masquer le code PIN"
+  "@radioStats_txAir": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_rxAir": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@radioStats_stripNoise": {
+    "placeholders": {
+      "noiseDbm": {
+        "type": "int"
+      }
+    }
+  },
+  "chat_sendCooldown": "Veuillez patienter un instant avant de réessayer.",
+  "appSettings_jumpToOldestUnread": "Accéder au message le plus ancien non lu",
+  "appSettings_languageHu": "Hongrois",
+  "appSettings_jumpToOldestUnreadSubtitle": "Lorsque vous ouvrez une conversation contenant des messages non lus, faites défiler la page jusqu'au premier message non lu, plutôt que jusqu'au dernier.",
+  "appSettings_languageJa": "Japonais",
+  "appSettings_languageKo": "Coréen",
+  "radioStats_tooltip": "Statistiques des radios et des réseaux sans fil",
+  "radioStats_screenTitle": "Statistiques de radio",
+  "radioStats_notConnected": "Connectez-vous à un appareil pour visualiser les statistiques de la radio.",
+  "radioStats_firmwareTooOld": "Les statistiques radio nécessitent un firmware compatible v8 ou une version ultérieure.",
+  "radioStats_waiting": "En attente des données…",
+  "radioStats_noiseFloor": "Niveau de bruit : {noiseDbm} dBm",
+  "radioStats_lastRssi": "Dernier RSSI : {rssiDbm} dBm",
+  "radioStats_lastSnr": "Dernier SNR : {snr} dB",
+  "radioStats_txAir": "Temps d'antenne à la télévision du Texas (total) : {seconds} s",
+  "radioStats_rxAir": "Temps d'utilisation de l'appareil RX (total) : {seconds} s",
+  "radioStats_chartCaption": "Niveau de bruit (dBm) sur les échantillons récents.",
+  "radioStats_stripNoise": "Niveau de bruit : {noiseDbm} dBm",
+  "radioStats_stripWaiting": "Récupération des statistiques de la radio…",
+  "radioStats_settingsTile": "Statistiques de radio",
+  "radioStats_settingsSubtitle": "Niveau de bruit, RSSI, rapport signal/bruit (SNR) et temps d'antenne"
 }
